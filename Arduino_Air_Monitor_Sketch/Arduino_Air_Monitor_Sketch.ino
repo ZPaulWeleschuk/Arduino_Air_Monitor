@@ -113,15 +113,15 @@ int previousPixelPos;
 int counter;
 //temp variables
 float totalTempReadings;
-int averageTempReading;
-int previousaverageTempReading;
+float averageTempReading;
+float previousaverageTempReading;
 int mapAverageTempReadings;
 int mapPreviousAverageTempReading;
 
 //Humidity variables
 float totalHumidityReadings;
-int averageHumidityReading;
-int previousaverageHumidityReading;
+float averageHumidityReading;
+float previousaverageHumidityReading;
 int mapAverageHumidityReadings;
 int mapPreviousAverageHumidityReading;
 
@@ -141,7 +141,7 @@ void setup() {
   // Comment out below line once you set the date & time and there is a battery in module.
   // Following line sets the RTC with an explicit date & time
   // for example to set January 13 2022 at 12:15 you would call:
-  rtc.set(20, 58, 20, 7, 18, 3, 23);
+  rtc.set(30, 42, 21, 7, 18, 3, 23);
   // rtc.set(second, minute, hour, dayOfWeek, dayOfMonth, month, year)
   // set day of week (1=Sunday, 7=Saturday)
 
@@ -293,8 +293,8 @@ void loop() {
     Serial.print(rtc.hour());
     Serial.print(":");
     Serial.println(rtc.minute());
-    averageTempReading = round((double)totalTempReadings / (double)counter);
-    averageHumidityReading = round((double)totalHumidityReadings / (double)counter);
+    averageTempReading = (float)totalTempReadings / (float)counter;//we actually dont need to round, we have enough pixels to display halve values
+    averageHumidityReading = (float)totalHumidityReadings / (float)counter;// dont round
     Serial.print("assinging ");
     Serial.print(averageTempReading);
     Serial.print(" to position ");
@@ -304,13 +304,28 @@ void loop() {
       previousPixelPos = 0;
     }
 
+ //safty limit on  temp value
+    if (averageTempReading>maxTemp){
+      averageTempReading = maxTemp;
+    }
+    else if  (averageTempReading<minTemp){
+      averageTempReading = minTemp;
+    }
+      //safty limit on  Humidity value
+    if (averageHumidityReading>maxHumidity){
+      averageHumidityReading = maxHumidity;
+    }
+    else if (averageHumidityReading< minHumidity){
+      averageHumidityReading = minHumidity;
+    }
+
     //get values for graphing
     //temp
-    mapAverageTempReadings = map(averageTempReading, minTemp, maxTemp, graphHeight + graphYPos, graphYPos);
-    mapPreviousAverageTempReading = map(previousaverageTempReading, minTemp, maxTemp, graphHeight + graphYPos, graphYPos);
+    mapAverageTempReadings = mapf(averageTempReading, minTemp, maxTemp, graphHeight + graphYPos, graphYPos);
+    mapPreviousAverageTempReading = mapf(previousaverageTempReading, minTemp, maxTemp, graphHeight + graphYPos, graphYPos);
     //humidity
-    mapAverageHumidityReadings = map(averageHumidityReading, minHumidity, maxHumidity, graphHeight + graphYPos, graphYPos);
-    mapPreviousAverageHumidityReading = map(previousaverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphYPos, graphYPos);
+    mapAverageHumidityReadings = mapf(averageHumidityReading, minHumidity, maxHumidity, graphHeight + graphYPos, graphYPos);
+    mapPreviousAverageHumidityReading = mapf(previousaverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphYPos, graphYPos);
 
 
 
@@ -326,13 +341,13 @@ void loop() {
     Serial.println(graphXPos + pixelPos);
 
     //safty limit on  temp value
-    if (mapAverageTempReadings >= graphHeight) {  //greater than as y increase downwards
-      mapAverageTempReadings = graphHeight;
-    }
-    //safty limit on  Humidity value
-    if (mapAverageHumidityReadings >= graphHeight) {  //greater than as y increase downwards
-      mapAverageHumidityReadings = graphHeight;
-    }
+    // if (mapAverageTempReadings >= graphHeight) {  //greater than as y increase downwards
+    //   mapAverageTempReadings = graphHeight;
+    // }
+    // //safty limit on  Humidity value
+    // if (mapAverageHumidityReadings >= graphHeight) {  //greater than as y increase downwards
+    //   mapAverageHumidityReadings = graphHeight;
+    // }
 
 
     tft.drawLine(graphXPos + previousPixelPos, mapPreviousAverageTempReading, graphXPos + pixelPos, mapAverageTempReadings, ST77XX_GREEN);
@@ -461,4 +476,10 @@ void drawTimeScalePoint(int timePoint, int xMin, int xMax, int xStart, int xEnd,
     }
     tft.print(timePoint);
   }
+}
+
+float mapf(float value, int inputMin, int inputMax, int outputMin, int outputMax){
+  Serial.print("mapf is returning: ");
+  Serial.println((value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin)+ outputMin);
+  return (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin)+ outputMin;
 }
