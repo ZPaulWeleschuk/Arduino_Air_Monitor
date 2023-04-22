@@ -47,6 +47,10 @@ note: the MISO pin is not used in this sketch
 
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
+//color (RGB565)
+//TODO:
+
+
 //If you arent able to use the designated SPI pins for your board, use the following instead:
 //Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
 //---------------------------------------------------------------------------------
@@ -62,9 +66,7 @@ float R1 = 10000;
 float logR2, R2, T;
 float c1 = 1.009249522e-03, c2 = 2.378405444e-04, c3 = 2.019202697e-07;
 float temperature;
-// the value will quickly become too large for an int to store
-// unsigned long previousMillis = 0;  // will store last time LED was updated
-// const long interval = 500;         // interval at which to update display
+
 
 //---------------------------------------------------------------------------------
 //Humidity Sensor
@@ -85,7 +87,11 @@ const int graphWidth = 180;  //px
 const int graphHeight = 70;  //px
 
 const int graphXPos = 30;
-const int graphYPos = 15;
+const int graphTopYPos = 15;
+
+//offsets for middle and bottom graphs
+const int graphMiddleYPos = 107;
+ const graphBottomYPos =214;
 
 const int minTemp = 15;
 const int maxTemp = 26;
@@ -95,10 +101,7 @@ const int maxHumidity = 75;
 
 int x;
 int y;
-// int prevX = 30;
-// int prevY = 0;
 
-// int value = 0;
 
 bool valueError = false;
 
@@ -115,16 +118,23 @@ int counter;
 float totalTempReadings;
 float averageTempReading;
 float previousaverageTempReading;
-int mapAverageTempReadings;
-int mapPreviousAverageTempReading;
+
+int mapTopTemp;
+int mapTopPreviousTemp;
+
+int mapMiddleTemp;
+int mapMiddlePreviousTemp; 
 
 //Humidity variables
 float totalHumidityReadings;
 float averageHumidityReading;
 float previousaverageHumidityReading;
-int mapAverageHumidityReadings;
-int mapPreviousAverageHumidityReading;
 
+int mapTopHumidity;
+int mapTopPreviousHumidity;
+
+int mapMiddleHumidity;
+int mapMiddlePreviousHumidity ;
 //---------------------------------------------------------------------------------
 
 
@@ -141,7 +151,7 @@ void setup() {
   // Comment out below line once you set the date & time and there is a battery in module.
   // Following line sets the RTC with an explicit date & time
   // for example to set January 13 2022 at 12:15 you would call:
-  rtc.set(30, 42, 21, 7, 18, 3, 23);
+  rtc.set(20, 9, 22, 7, 18, 3, 23);
   // rtc.set(second, minute, hour, dayOfWeek, dayOfMonth, month, year)
   // set day of week (1=Sunday, 7=Saturday)
 
@@ -178,54 +188,96 @@ void setup() {
   // Clear screen and draw graph axes
   tft.fillScreen(ST77XX_BLACK);
   //-----------------------
-  //draw temp axis (left axis)
-  tft.drawFastVLine(graphXPos - 3, graphYPos, graphHeight, ST77XX_GREEN);
-  drawScalePoint(15, minTemp, maxTemp, graphHeight + graphYPos, graphYPos, ST77XX_GREEN, false, true);
-  drawScalePoint(16, minTemp, maxTemp, graphHeight + graphYPos, graphYPos, ST77XX_GREEN, true, true);
-  drawScalePoint(18, minTemp, maxTemp, graphHeight + graphYPos, graphYPos, ST77XX_GREEN, true, true);
-  drawScalePoint(20, minTemp, maxTemp, graphHeight + graphYPos, graphYPos, ST77XX_GREEN, true, true);
-  drawScalePoint(22, minTemp, maxTemp, graphHeight + graphYPos, graphYPos, ST77XX_GREEN, true, true);
-  drawScalePoint(24, minTemp, maxTemp, graphHeight + graphYPos, graphYPos, ST77XX_GREEN, true, true);
-  drawScalePoint(26, minTemp, maxTemp, graphHeight + graphYPos, graphYPos, ST77XX_GREEN, true, true);
-  //drawScalePoint(28, minTemp, maxTemp, graphHeight + graphYPos, graphYPos, ST77XX_GREEN, true, true);
+  //draw temp axis (top left axis)
+  tft.drawFastVLine(graphXPos - 3, graphTopYPos, graphHeight, ST77XX_GREEN);
+  drawScalePoint(15, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, false, true);
+  drawScalePoint(16, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
+  drawScalePoint(18, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
+  drawScalePoint(20, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
+  drawScalePoint(22, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
+  drawScalePoint(24, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
+  drawScalePoint(26, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
 
-  //draw right axis (humidity)
-  tft.drawFastVLine(graphXPos + graphWidth + 3, graphYPos, graphHeight, ST77XX_CYAN);
-  drawScalePoint(25, minHumidity, maxHumidity, graphHeight + graphYPos, graphYPos, ST77XX_CYAN, false, false);
-  drawScalePoint(30, minHumidity, maxHumidity, graphHeight + graphYPos, graphYPos, ST77XX_CYAN, true, false);
-  drawScalePoint(40, minHumidity, maxHumidity, graphHeight + graphYPos, graphYPos, ST77XX_CYAN, true, false);
-  drawScalePoint(50, minHumidity, maxHumidity, graphHeight + graphYPos, graphYPos, ST77XX_CYAN, true, false);
-  drawScalePoint(60, minHumidity, maxHumidity, graphHeight + graphYPos, graphYPos, ST77XX_CYAN, true, false);
-  drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphYPos, graphYPos, ST77XX_CYAN, true, false);
-  drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphYPos, graphYPos, ST77XX_CYAN, false, false);
+  //middle left axis
+  tft.drawFastVLine(graphXPos - 3, graphMiddleYPos, graphHeight, ST77XX_YELLOW);
+  drawScalePoint(15, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, false, true);
+  drawScalePoint(16, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+  drawScalePoint(18, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+  drawScalePoint(20, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+  drawScalePoint(22, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+  drawScalePoint(24, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+  drawScalePoint(26, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+
+  
+  //bottom left axis
+  tft.drawFastVLine(graphXPos - 3, graphBottomYPos, graphHeight, ST77XX_ORANGE);
+  drawScalePoint(15, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_ORANGE, false, true);
+  drawScalePoint(16, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_ORANGE, true, true);
+  drawScalePoint(18, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_ORANGE, true, true);
+  drawScalePoint(20, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_ORANGE, true, true);
+  drawScalePoint(22, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_ORANGE, true, true);
+  drawScalePoint(24, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_ORANGE, true, true);
+  drawScalePoint(26, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_ORANGE, true, true);
+
+  //draw right axis (top right humidity)
+  tft.drawFastVLine(graphXPos + graphWidth + 3, graphTopYPos, graphHeight, ST77XX_CYAN);
+  drawScalePoint(25, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false);
+  drawScalePoint(30, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
+  drawScalePoint(40, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
+  drawScalePoint(50, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
+  drawScalePoint(60, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
+  drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
+  drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false);
+
+//middle right axis
+  tft.drawFastVLine(graphXPos + graphWidth + 3, graphMiddleYPos, graphHeight, ST77XX_MAGENTA);
+  drawScalePoint(25, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_MAGENTA, false, false);
+  drawScalePoint(30, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_MAGENTA, true, false);
+  drawScalePoint(40, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_MAGENTA, true, false);
+  drawScalePoint(50, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_MAGENTA, true, false);
+  drawScalePoint(60, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_MAGENTA, true, false);
+  drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_MAGENTA, true, false);
+  drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_MAGENTA, false, false);
+
+  //bottom right axis
+  tft.drawFastVLine(graphXPos + graphWidth + 3, graphBottomYPos, graphHeight, ST77XX_PINK);
+  drawScalePoint(25, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_PINK, false, false);
+  drawScalePoint(30, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_PINK, true, false);
+  drawScalePoint(40, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_PINK, true, false);
+  drawScalePoint(50, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_PINK, true, false);
+  drawScalePoint(60, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_PINK, true, false);
+  drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_PINK, true, false);
+  drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_PINK, false, false);
+
 
   //draw time axis
-  tft.drawFastHLine(graphXPos, graphYPos + graphHeight + 1, graphWidth, ST77XX_WHITE);
-  drawTimeScalePoint(0, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, true);
-  drawTimeScalePoint(1, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false);
-  drawTimeScalePoint(2, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false);
-  drawTimeScalePoint(3, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, true);
-  drawTimeScalePoint(4, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false);
-  drawTimeScalePoint(5, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false);
-  drawTimeScalePoint(6, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, true);
-  drawTimeScalePoint(7, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false);
-  drawTimeScalePoint(8, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false);
-  drawTimeScalePoint(9, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, true);
-  drawTimeScalePoint(10, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false);
-  drawTimeScalePoint(11, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false);
-  drawTimeScalePoint(12, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, true);
-  drawTimeScalePoint(13, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false);
-  drawTimeScalePoint(14, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false);
-  drawTimeScalePoint(15, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, true);
-  drawTimeScalePoint(16, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false);
-  drawTimeScalePoint(17, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false);
-  drawTimeScalePoint(18, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, true);
-  drawTimeScalePoint(19, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false);
-  drawTimeScalePoint(20, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false);
-  drawTimeScalePoint(21, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, true);
-  drawTimeScalePoint(22, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false);
-  drawTimeScalePoint(23, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false);
-  drawTimeScalePoint(24, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, true);
+  tft.drawFastHLine(graphXPos, graphTopYPos + graphHeight + 1, graphWidth, ST77XX_WHITE);
+  tft.drawFastHLine(graphXPos, graphTopYPos + graphHeight + 16, graphWidth, ST77XX_WHITE);
+  drawTimeScalePoint(0, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, true, true);
+  drawTimeScalePoint(1, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false, true);
+  drawTimeScalePoint(2, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false, true);
+  drawTimeScalePoint(3, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, true, true);
+  drawTimeScalePoint(4, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false, true);
+  drawTimeScalePoint(5, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false, true);
+  drawTimeScalePoint(6, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, true, true);
+  drawTimeScalePoint(7, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false, true);
+  drawTimeScalePoint(8, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false, true);
+  drawTimeScalePoint(9, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, true, true);
+  drawTimeScalePoint(10, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false, true);
+  drawTimeScalePoint(11, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false, true);
+  drawTimeScalePoint(12, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, true, true);
+  drawTimeScalePoint(13, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false, true);
+  drawTimeScalePoint(14, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false, true);
+  drawTimeScalePoint(15, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, true, true);
+  drawTimeScalePoint(16, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false, true);
+  drawTimeScalePoint(17, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false, true);
+  drawTimeScalePoint(18, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, true, true);
+  drawTimeScalePoint(19, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false, true);
+  drawTimeScalePoint(20, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false, true);
+  drawTimeScalePoint(21, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, true, true);
+  drawTimeScalePoint(22, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false, true);
+  drawTimeScalePoint(23, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, false, true);
+  drawTimeScalePoint(24, 0, 24, graphXPos, graphXPos + graphWidth, ST77XX_WHITE, true, true);
 
 
   Serial.println("starting monitoring");
@@ -247,9 +299,6 @@ void loop() {
     Serial.println('failed to read humidity!');
     delay(1000);
   }
-  // Serial.print("Humidity: ");
-  // Serial.println(humidity);
-
 
 
 
@@ -263,98 +312,106 @@ void loop() {
       to output value low,
       to output value high)
     */
-  // y = map(value, 15, 30, graphHeight, 0);
-  // //safty limit on values
-  // //TODO://TODO: write this into code
-  // if (y >= graphHeight) {  //greater than as y increase downwards
-  //   y = graphHeight;
-  //   valueError = true;
-  // }
-  // if (valueError == true && y < graphHeight) {
-  //   valueError = false;
-  // }
-
 
 
   rtc.refresh();
   pixelPos = ((rtc.hour() * 60) + (rtc.minute())) / 8;
   currentMinute = rtc.minute();
 
+  //moving time bar that pans left to right with time and erases the old data
   if (pixelPos != previousPixelPos) {
     //erases older line
-    tft.drawFastVLine(graphXPos + pixelPos + 2, graphYPos, graphHeight, ST77XX_WHITE);
-    tft.drawRect(graphXPos + pixelPos, graphYPos, 2, graphHeight + 1, ST77XX_BLACK);
-    if (pixelPos == 0) {
-      tft.drawFastVLine(graphXPos + graphWidth + 2, graphYPos, graphHeight, ST77XX_BLACK);
-      tft.drawFastVLine(graphXPos + graphWidth + 1, graphYPos, graphHeight, ST77XX_BLACK);
-    }
+    tft.drawFastVLine(graphXPos + pixelPos + 2, graphTopYPos, graphHeight, ST77XX_WHITE);
+    tft.drawRect(graphXPos + pixelPos, graphTopYPos, 2, graphHeight + 1, ST77XX_BLACK);
 
-    Serial.print("Time: ");
-    Serial.print(rtc.hour());
-    Serial.print(":");
-    Serial.println(rtc.minute());
-    averageTempReading = (float)totalTempReadings / (float)counter;//we actually dont need to round, we have enough pixels to display halve values
-    averageHumidityReading = (float)totalHumidityReadings / (float)counter;// dont round
-    Serial.print("assinging ");
-    Serial.print(averageTempReading);
-    Serial.print(" to position ");
-    Serial.println(previousPixelPos);
+
+    tft.drawFastVLine(graphXPos + pixelPos + 2, graphMiddleYPos, graphHeight, ST77XX_WHITE);
+    tft.drawRect(graphXPos + pixelPos, graphMiddleYPos, 2, graphHeight + 1, ST77XX_BLACK);
+
+    if (pixelPos == 0) {
+
+      tft.drawFastVLine(graphXPos + graphWidth + 2, graphTopYPos, graphHeight, ST77XX_BLACK);
+      tft.drawFastVLine(graphXPos + graphWidth + 1, graphTopYPos, graphHeight, ST77XX_BLACK);
+
+
+      tft.drawFastVLine(graphXPos + graphWidth + 2, graphMiddleYPos, graphHeight, ST77XX_BLACK);
+      tft.drawFastVLine(graphXPos + graphWidth + 1, graphMiddleYPos, graphHeight, ST77XX_BLACK);
+    }
     if (previousPixelPos > pixelPos) {
       //this is for the 24 hour role over
       previousPixelPos = 0;
     }
 
- //safty limit on  temp value
-    if (averageTempReading>maxTemp){
+
+    // Serial.print("Time: ");
+    // Serial.print(rtc.hour());
+    // Serial.print(":");
+    // Serial.println(rtc.minute());
+
+    //get the average reading
+    averageTempReading = (float)totalTempReadings / (float)counter;          //we actually dont need to round, we have enough pixels to display halve values
+    averageHumidityReading = (float)totalHumidityReadings / (float)counter;  // dont round
+
+
+    // Serial.print("assinging ");
+    // Serial.print(averageTempReading);
+    // Serial.print(" to position ");
+    // Serial.println(previousPixelPos);
+
+
+    //safty limit on  temp value
+    if (averageTempReading > maxTemp) {
       averageTempReading = maxTemp;
-    }
-    else if  (averageTempReading<minTemp){
+    } else if (averageTempReading < minTemp) {
       averageTempReading = minTemp;
     }
-      //safty limit on  Humidity value
-    if (averageHumidityReading>maxHumidity){
+    //safty limit on  Humidity value
+    if (averageHumidityReading > maxHumidity) {
       averageHumidityReading = maxHumidity;
-    }
-    else if (averageHumidityReading< minHumidity){
+    } else if (averageHumidityReading < minHumidity) {
       averageHumidityReading = minHumidity;
     }
 
     //get values for graphing
     //temp
-    mapAverageTempReadings = mapf(averageTempReading, minTemp, maxTemp, graphHeight + graphYPos, graphYPos);
-    mapPreviousAverageTempReading = mapf(previousaverageTempReading, minTemp, maxTemp, graphHeight + graphYPos, graphYPos);
+    mapTopTemp = mapf(averageTempReading, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos);
+    mapTopPreviousTemp = mapf(previousaverageTempReading, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos);
     //humidity
-    mapAverageHumidityReadings = mapf(averageHumidityReading, minHumidity, maxHumidity, graphHeight + graphYPos, graphYPos);
-    mapPreviousAverageHumidityReading = mapf(previousaverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphYPos, graphYPos);
+    mapTopHumidity = mapf(averageHumidityReading, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos);
+    mapTopPreviousHumidity = mapf(previousaverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos);
 
+    //test middle graph //TODO:
+    mapMiddleTemp = mapf(averageTempReading, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos);
+    mapMiddlePreviousTemp = mapf(previousaverageTempReading, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos);
+    mapMiddleHumidity = mapf(averageHumidityReading, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos);
+    mapMiddlePreviousHumidity = mapf(previousaverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos);
 
 
     Serial.print("mapaverageTempReading yPos: ");
-    Serial.println(mapAverageTempReadings);
+    Serial.println(mapTopTemp);
     Serial.print(" @ xPos:");
     Serial.println(graphXPos + pixelPos);
-
 
     Serial.print("mapaverageHumidityReading yPos: ");
-    Serial.println(mapAverageHumidityReadings);
+    Serial.println(mapTopHumidity);
     Serial.print(" @ xPos:");
     Serial.println(graphXPos + pixelPos);
 
-    //safty limit on  temp value
-    // if (mapAverageTempReadings >= graphHeight) {  //greater than as y increase downwards
-    //   mapAverageTempReadings = graphHeight;
-    // }
-    // //safty limit on  Humidity value
-    // if (mapAverageHumidityReadings >= graphHeight) {  //greater than as y increase downwards
-    //   mapAverageHumidityReadings = graphHeight;
-    // }
 
 
-    tft.drawLine(graphXPos + previousPixelPos, mapPreviousAverageTempReading, graphXPos + pixelPos, mapAverageTempReadings, ST77XX_GREEN);
+    tft.drawLine(graphXPos + previousPixelPos, mapTopPreviousTemp, graphXPos + pixelPos, mapTopTemp, ST77XX_GREEN);
+
+//TODO:test 
+tft.drawLine(graphXPos + previousPixelPos, mapMiddlePreviousTemp, graphXPos + pixelPos, mapMiddleTemp, ST77XX_YELLOW);
+
     previousaverageTempReading = averageTempReading;
     totalTempReadings = 0;
 
-    tft.drawLine(graphXPos + previousPixelPos, mapPreviousAverageHumidityReading, graphXPos + pixelPos, mapAverageHumidityReadings, ST77XX_CYAN);
+    tft.drawLine(graphXPos + previousPixelPos, mapTopPreviousHumidity, graphXPos + pixelPos, mapTopHumidity, ST77XX_CYAN);
+
+//TODO: test
+    tft.drawLine(graphXPos + previousPixelPos, mapMiddlePreviousHumidity, graphXPos + pixelPos, mapMiddleHumidity, ST77XX_MAGENTA);
+
     previousaverageHumidityReading = averageHumidityReading;
     totalHumidityReadings = 0;
 
@@ -388,45 +445,15 @@ void loop() {
 
 
   //---------------------------------
-
-
-  // Draw line from previous point to new point
-  // tft.drawLine(prevX, prevY, x, y, ST77XX_GREEN);
-
-
-  // // Save current point as previous point for next iteration
-  // prev//= x;
-  // prevY = y;
-
-
-  // // Increment x position for next point
-  // x++;
-
-  // If x position exceeds graph width, reset to 0 and clear screen
-  // if (x >= graphWidth + graphXPos) {
-  //   //attempt to remove the white scroll line that sticks to the end of the graph
-  //   //doesnt work
-  //   //tft.drawRect(x+2,  0,8, 61, ST77XX_BLACK);
-  //   x = graphXPos;
-  //   prevX = graphXPos;
-  //   //tft.fillScreen(ST77XX_BLACK);
-  //   //tft.drawLine(0, 0, 0, displayHeight, ST77XX_WHITE);
-  //   //tft.drawLine(0, displayHeight-1, displayWidth, displayHeight-1, ST77XX_WHITE);
-  // }
-
-
+  //live read out of sensors
   tft.setTextSize(1);
   tft.setTextColor(ST77XX_GREEN, ST77XX_BLACK);
   tft.setCursor(5, 0);
-  // if (valueError == true) {
-  //   tft.setTextColor(ST77XX_RED, ST77XX_BLACK);
-  //   tft.setCursor(displayWidth - 30, 5);
-  //   tft.println("ERROR");
-  // } else {
+
   tft.print("Temp:");
   tft.print(temperature);
   tft.print("c");
-  //}
+
   tft.setTextColor(ST77XX_WHITE, ST77XX_BLACK);
   tft.setCursor(85, 0);
   tft.print(rtc.hour());
@@ -443,9 +470,10 @@ void loop() {
   tft.print("%");
 
 
-  delay(1000);  //add half a second delay
+  delay(1000);  //add a one second delay
 }
 
+//draw the y-axis
 void drawScalePoint(int scalePoint, int yMin, int yMax, int yStart, int yEnd, unsigned int color, bool drawLabel, bool onLeft) {
   y = map(scalePoint, yMin, yMax, yStart, yEnd);
   if (onLeft) {
@@ -464,22 +492,27 @@ void drawScalePoint(int scalePoint, int yMin, int yMax, int yStart, int yEnd, un
   }
 }
 
-void drawTimeScalePoint(int timePoint, int xMin, int xMax, int xStart, int xEnd, unsigned int color, bool drawLabel) {
+//draw the time axis (x-axis)
+void drawTimeScalePoint(int timePoint, int xMin, int xMax, int xStart, int xEnd, unsigned int color, bool drawLabel, bool drawBottomScale) {
   x = map(timePoint, xMin, xMax, xStart, xEnd);
-  tft.drawFastVLine(x, graphYPos + graphHeight + 1, 3, color);
+  tft.drawFastVLine(x, graphTopYPos + graphHeight + 1, 3, color);
+  if (drawBottomScale) {
+    tft.drawFastVLine(x, graphTopYPos + graphHeight + 13, 3, color);
+  }
   if (drawLabel) {
     tft.setTextColor(color);
     if (timePoint > 9) {  //label contains two digits off set it so its center still
-      tft.setCursor(x - 5, graphYPos + graphHeight + 5);
+      tft.setCursor(x - 5, graphTopYPos + graphHeight + 5);
     } else {
-      tft.setCursor(x - 2, graphYPos + graphHeight + 5);
+      tft.setCursor(x - 2, graphTopYPos + graphHeight + 5);
     }
     tft.print(timePoint);
   }
 }
 
-float mapf(float value, int inputMin, int inputMax, int outputMin, int outputMax){
+//like the map function but accommodates floats
+float mapf(float value, int inputMin, int inputMax, int outputMin, int outputMax) {
   Serial.print("mapf is returning: ");
-  Serial.println((value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin)+ outputMin);
-  return (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin)+ outputMin;
+  Serial.println((value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin);
+  return (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin;
 }
