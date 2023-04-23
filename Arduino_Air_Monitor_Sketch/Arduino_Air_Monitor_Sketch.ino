@@ -91,7 +91,7 @@ const int graphTopYPos = 15;
 
 //offsets for middle and bottom graphs
 const int graphMiddleYPos = 107;
- const graphBottomYPos =214;
+ const int graphBottomYPos =214;
 
 const int minTemp = 15;
 const int maxTemp = 26;
@@ -151,7 +151,7 @@ void setup() {
   // Comment out below line once you set the date & time and there is a battery in module.
   // Following line sets the RTC with an explicit date & time
   // for example to set January 13 2022 at 12:15 you would call:
-  rtc.set(20, 9, 22, 7, 18, 3, 23);
+  rtc.set(00, 8, 14, 7, 18, 3, 23);
   // rtc.set(second, minute, hour, dayOfWeek, dayOfMonth, month, year)
   // set day of week (1=Sunday, 7=Saturday)
 
@@ -210,14 +210,14 @@ void setup() {
 
   
   //bottom left axis
-  tft.drawFastVLine(graphXPos - 3, graphBottomYPos, graphHeight, ST77XX_ORANGE);
-  drawScalePoint(15, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_ORANGE, false, true);
-  drawScalePoint(16, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_ORANGE, true, true);
-  drawScalePoint(18, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_ORANGE, true, true);
-  drawScalePoint(20, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_ORANGE, true, true);
-  drawScalePoint(22, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_ORANGE, true, true);
-  drawScalePoint(24, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_ORANGE, true, true);
-  drawScalePoint(26, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_ORANGE, true, true);
+  // tft.drawFastVLine(graphXPos - 3, graphBottomYPos, graphHeight, ST77XX_ORANGE);
+  // drawScalePoint(15, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_ORANGE, false, true);
+  // drawScalePoint(16, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_ORANGE, true, true);
+  // drawScalePoint(18, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_ORANGE, true, true);
+  // drawScalePoint(20, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_ORANGE, true, true);
+  // drawScalePoint(22, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_ORANGE, true, true);
+  // drawScalePoint(24, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_ORANGE, true, true);
+  // drawScalePoint(26, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_ORANGE, true, true);
 
   //draw right axis (top right humidity)
   tft.drawFastVLine(graphXPos + graphWidth + 3, graphTopYPos, graphHeight, ST77XX_CYAN);
@@ -240,14 +240,14 @@ void setup() {
   drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_MAGENTA, false, false);
 
   //bottom right axis
-  tft.drawFastVLine(graphXPos + graphWidth + 3, graphBottomYPos, graphHeight, ST77XX_PINK);
-  drawScalePoint(25, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_PINK, false, false);
-  drawScalePoint(30, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_PINK, true, false);
-  drawScalePoint(40, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_PINK, true, false);
-  drawScalePoint(50, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_PINK, true, false);
-  drawScalePoint(60, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_PINK, true, false);
-  drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_PINK, true, false);
-  drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_PINK, false, false);
+  // tft.drawFastVLine(graphXPos + graphWidth + 3, graphBottomYPos, graphHeight, ST77XX_PINK);
+  // drawScalePoint(25, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_PINK, false, false);
+  // drawScalePoint(30, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_PINK, true, false);
+  // drawScalePoint(40, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_PINK, true, false);
+  // drawScalePoint(50, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_PINK, true, false);
+  // drawScalePoint(60, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_PINK, true, false);
+  // drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_PINK, true, false);
+  // drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_PINK, false, false);
 
 
   //draw time axis
