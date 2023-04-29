@@ -154,7 +154,7 @@ void setup() {
   // Comment out below line once you set the date & time and there is a battery in module.
   // Following line sets the RTC with an explicit date & time
   // for example to set January 13 2022 at 12:15 you would call:
-  rtc.set(20, 5, 21, 7, 18, 3, 23);
+  rtc.set(10, 19, 20, 7, 18, 3, 23);
   // rtc.set(second, minute, hour, dayOfWeek, dayOfMonth, month, year)
   // set day of week (1=Sunday, 7=Saturday)
 
@@ -193,74 +193,74 @@ void setup() {
   //-----------------------
   //draw temp axis (top left axis)
   tft.drawFastVLine(graphXPos - 3, graphTopYPos, graphHeight, ST77XX_GREEN);
-  drawScalePoint(15, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, false, true,true);
-  drawScalePoint(16, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true,true);
-  drawScalePoint(18, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true,true);
-  drawScalePoint(20, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true,true);
-  drawScalePoint(22, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true,true);
-  drawScalePoint(24, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true,true);
-  drawScalePoint(26, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true,true);
+  drawScalePoint(15, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, false, true);
+  drawScalePoint(16, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
+  drawScalePoint(18, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
+  drawScalePoint(20, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
+  drawScalePoint(22, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
+  drawScalePoint(24, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
+  drawScalePoint(26, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
 
   //middle left axis
   tft.drawFastVLine(graphXPos - 3, graphMiddleYPos, graphHeight, ST77XX_YELLOW);
-  drawScalePoint(15, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, false, true, true);
-  drawScalePoint(16, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true, true);
-  drawScalePoint(18, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true, true);
-  drawScalePoint(20, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true, true);
-  drawScalePoint(22, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true, true);
-  drawScalePoint(24, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true, true);
-  drawScalePoint(26, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true, true);
+  drawScalePoint(15, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, false, true);
+  drawScalePoint(16, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+  drawScalePoint(18, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+  drawScalePoint(20, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+  drawScalePoint(22, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+  drawScalePoint(24, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+  drawScalePoint(26, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
 
 
   //bottom left axis
-  tft.drawFastVLine(graphXPos - 3, graphBottomYPos, graphHeight, BLUE);
-  drawScalePoint(15, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, false, true,true);
-  drawScalePoint(16, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true,true);
-  drawScalePoint(18, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true,true);
-  drawScalePoint(20, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true,true);
-  drawScalePoint(22, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true,true);
-  drawScalePoint(24, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true,true);
-  drawScalePoint(26, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true,true);
+  //tft.drawFastVLine(graphXPos - 3, graphBottomYPos, graphHeight, BLUE);
+   drawDualScalePoint(15, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, false, true);
+   drawDualScalePoint(16, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
+   drawDualScalePoint(18, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
+   drawDualScalePoint(20, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
+   drawDualScalePoint(22, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
+   drawDualScalePoint(24, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
+   drawDualScalePoint(26, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
 
   //test Double axis
-  tft.drawFastVLine(graphXPos - 10, graphBottomYPos, graphHeight, LIME);
-  drawScalePoint(15, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, LIME, false, true,false);
-  drawScalePoint(16, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, LIME, true, true,false);
-  drawScalePoint(18, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, LIME, true, true,false);
-  drawScalePoint(20, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, LIME, true, true,false);
-  drawScalePoint(22, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, LIME, true, true,false);
-  drawScalePoint(24, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, LIME, true, true,false);
-  drawScalePoint(26, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, LIME, true, true,false);
+  tft.drawFastVLine(graphXPos - 3, graphBottomYPos, graphHeight, ST77XX_CYAN);
+   drawDualScalePoint(15, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, false, false);
+   drawDualScalePoint(16, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
+   drawDualScalePoint(18, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
+   drawDualScalePoint(20, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
+   drawDualScalePoint(22, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
+   drawDualScalePoint(24, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
+   drawDualScalePoint(26, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
 
   //draw right axis (top right humidity)
   tft.drawFastVLine(graphXPos + graphWidth + 3, graphTopYPos, graphHeight, ST77XX_CYAN);
-  drawScalePoint(25, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false,true);
-  drawScalePoint(30, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false,true);
-  drawScalePoint(40, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false,true);
-  drawScalePoint(50, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false,true);
-  drawScalePoint(60, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false,true);
-  drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false,true);
-  drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false,true);
+  drawScalePoint(25, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false);
+  drawScalePoint(30, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
+  drawScalePoint(40, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
+  drawScalePoint(50, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
+  drawScalePoint(60, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
+  drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
+  drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false);
 
   //middle right axis
   tft.drawFastVLine(graphXPos + graphWidth + 3, graphMiddleYPos, graphHeight, PURPLE);
-  drawScalePoint(25, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, false, false,true);
-  drawScalePoint(30, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false,true);
-  drawScalePoint(40, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false,true);
-  drawScalePoint(50, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false,true);
-  drawScalePoint(60, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false,true);
-  drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false,true);
-  drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, false, false,true);
+  drawScalePoint(25, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, false, false);
+  drawScalePoint(30, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
+  drawScalePoint(40, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
+  drawScalePoint(50, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
+  drawScalePoint(60, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
+  drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
+  drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, false, false);
 
   //bottom right axis
   tft.drawFastVLine(graphXPos + graphWidth + 3, graphBottomYPos, graphHeight, RED);
-  drawScalePoint(25, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, RED, false, false,true);
-  drawScalePoint(30, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false,true);
-  drawScalePoint(40, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false,true);
-  drawScalePoint(50, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false,true);
-  drawScalePoint(60, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false,true);
-  drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false,true);
-  drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, RED, false, false,true);
+  drawScalePoint(25, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, RED, false, false);
+  drawScalePoint(30, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
+  drawScalePoint(40, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
+  drawScalePoint(50, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
+  drawScalePoint(60, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
+  drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
+  drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphBottomYPos, graphBottomYPos, RED, false, false);
 
 
   //draw time axis
@@ -536,15 +536,39 @@ void loop() {
   tft.print(humidity);
   tft.print("%");
 
+  //BOTTOM
+  tft.setTextSize(1);
+  tft.setTextColor(BLUE, ST77XX_BLACK);
+  tft.setCursor(5, 190);
+
+  tft.print("Temp:");
+  tft.print(temperature);
+  tft.print("c");
+
+
+  tft.setTextColor(ST77XX_CYAN, ST77XX_BLACK);
+  tft.setCursor(75, 190);
+
+  tft.print("Temp:");
+  tft.print(temperature);
+  tft.print("c");
+
+
+
+  tft.setTextColor(RED, ST77XX_BLACK);
+  tft.setCursor(145, 190);
+  tft.print("Humidity:");
+  tft.print(humidity);
+  tft.print("%");
+
 
 
   delay(1000);  //add a one second delay
 }
 
 //draw the y-axis
-void drawScalePoint(int scalePoint, int yMin, int yMax, int yStart, int yEnd, unsigned int color, bool drawLabel, bool onLeft, bool isSingleAxis) {
+void drawScalePoint(int scalePoint, int yMin, int yMax, int yStart, int yEnd, unsigned int color, bool drawLabel, bool onLeft) {
   y = map(scalePoint, yMin, yMax, yStart, yEnd);
-  if (isSingleAxis) {
     if (onLeft) {
       tft.drawFastHLine(22, y, 6, color);
     } else {
@@ -559,17 +583,26 @@ void drawScalePoint(int scalePoint, int yMin, int yMax, int yStart, int yEnd, un
       }
       tft.print(scalePoint);
     }
-  }else{
-tft.drawFastHLine(10, y, 6, color);
+}
+
+///draw two axis on the left side
+///isLeftSide is the left side of the double axis
+void drawDualScalePoint(int scalePoint, int yMin, int yMax, int yStart, int yEnd, unsigned int color, bool drawLabel, bool isLeftSide ) {
+  //
+  y = map(scalePoint, yMin, yMax, yStart, yEnd);
+if(!isLeftSide){
+       tft.drawFastHLine(25, y, 2, color);
+}
     if (drawLabel == true) {
+      if (isLeftSide){
       tft.setTextColor(color);
-
         tft.setCursor(0, y - 3);  //+3 as text starts at top left and text is ?? px tall and we need to raise it higher
-
       tft.print(scalePoint);
-    }
-
-  }
+    }else{
+            tft.setTextColor(color);
+        tft.setCursor(13, y - 3);  //+3 as text starts at top left and text is ?? px tall and we need to raise it higher
+      tft.print(scalePoint);
+    }}
 }
 
 
