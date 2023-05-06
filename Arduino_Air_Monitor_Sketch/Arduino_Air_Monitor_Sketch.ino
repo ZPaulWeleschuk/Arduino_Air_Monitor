@@ -151,10 +151,10 @@ void setup() {
 
 
 
-  // Comment out below line once you set the date & time and there is a battery in module.
   // Following line sets the RTC with an explicit date & time
-  // for example to set January 13 2022 at 12:15 you would call:
-  rtc.set(10, 19, 20, 7, 18, 3, 23);
+  // for example to set January 13 2022 at 12:15 you would call://TODO:
+  // Comment out below line once there is a battery in module, and you set the date & time
+  //rtc.set(20, 41, 19, 5, 4, 5, 23);
   // rtc.set(second, minute, hour, dayOfWeek, dayOfMonth, month, year)
   // set day of week (1=Sunday, 7=Saturday)
 
