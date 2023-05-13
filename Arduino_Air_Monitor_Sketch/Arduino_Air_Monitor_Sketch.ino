@@ -110,7 +110,9 @@ bool valueError = false;
 
 //---------------------------------------------------------------------------------
 //time module
-uRTCLib rtc(0x68);
+//uRTCLib rtc(0x68);
+uRTCLib rtc;
+
 int currentMinute;
 int previousMinute;
 
@@ -147,16 +149,20 @@ void setup() {
   Serial.begin(9600);
   dht.begin();
   delay(3000);  // wait for console opening
+
   URTCLIB_WIRE.begin();
-
-
-
+rtc.set_rtc_address(0x68);
+rtc.set_model(URTCLIB_MODEL_DS3231);
   // Following line sets the RTC with an explicit date & time
   // for example to set January 13 2022 at 12:15 you would call://TODO:
   // Comment out below line once there is a battery in module, and you set the date & time
-  //rtc.set(20, 41, 19, 5, 4, 5, 23);
+  //rtc.set(50, 15, 21, 5, 11, 5, 23);
   // rtc.set(second, minute, hour, dayOfWeek, dayOfMonth, month, year)
   // set day of week (1=Sunday, 7=Saturday)
+  //---------------------------------------
+//we are going to have to refactor using the northernWidget/ds3231 library as I can get this one to work
+//ill have to make a branch and do it.
+//---------------------------------------
 
   rtc.refresh();
   currentMinute = rtc.minute();
