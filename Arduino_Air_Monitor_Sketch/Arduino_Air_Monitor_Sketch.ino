@@ -156,13 +156,10 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   // Following line sets the RTC with an explicit date & time
   // for example to set January 13 2022 at 12:15 you would call://TODO:
   // Comment out below line once there is a battery in module, and you set the date & time
-  //rtc.set(50, 15, 21, 5, 11, 5, 23);
+  //rtc.set(20, 26, 18, 2, 15, 5, 23);
   // rtc.set(second, minute, hour, dayOfWeek, dayOfMonth, month, year)
   // set day of week (1=Sunday, 7=Saturday)
-  //---------------------------------------
-//we are going to have to refactor using the northernWidget/ds3231 library as I can get this one to work
-//ill have to make a branch and do it.
-//---------------------------------------
+
 
   rtc.refresh();
   currentMinute = rtc.minute();
@@ -434,15 +431,15 @@ void loop() {
     mapMiddlePreviousHumidity = mapf(previousaverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos);
 
 
-    Serial.print("mapaverageTempReading yPos: ");
-    Serial.println(mapTopTemp);
-    Serial.print(" @ xPos:");
-    Serial.println(graphXPos + pixelPos);
+    // Serial.print("mapaverageTempReading yPos: ");
+    // Serial.println(mapTopTemp);
+    // Serial.print(" @ xPos:");
+    // Serial.println(graphXPos + pixelPos);
 
-    Serial.print("mapaverageHumidityReading yPos: ");
-    Serial.println(mapTopHumidity);
-    Serial.print(" @ xPos:");
-    Serial.println(graphXPos + pixelPos);
+    // Serial.print("mapaverageHumidityReading yPos: ");
+    // Serial.println(mapTopHumidity);
+    // Serial.print(" @ xPos:");
+    // Serial.println(graphXPos + pixelPos);
 
 
 
@@ -466,29 +463,45 @@ void loop() {
     counter = 0;
   }
   if (currentMinute != previousMinute) {
-    Serial.print("Time: ");
-    Serial.print(rtc.hour());
-    Serial.print(":");
-    Serial.println(rtc.minute());
+    // Serial.print("Time: ");
+    // Serial.print(rtc.hour());
+    // Serial.print(":");
+    // Serial.println(rtc.minute());
     previousMinute = currentMinute;
     counter++;
     totalTempReadings += temperature;
     totalHumidityReadings += humidity;
 
-    Serial.print("temperature: ");
-    Serial.println(temperature);
-    Serial.print("counter: ");
-    Serial.println(counter);
-    Serial.print("totalTempReadings: ");
-    Serial.println(totalTempReadings);
+    // Serial.print("temperature: ");
+    // Serial.println(temperature);
+    // Serial.print("counter: ");
+    // Serial.println(counter);
+    // Serial.print("totalTempReadings: ");
+    // Serial.println(totalTempReadings);
 
-    Serial.print("Humidity: ");
-    Serial.println(humidity);
-    Serial.print("counter: ");
-    Serial.println(counter);
-    Serial.print("totalHumidityReadings: ");
-    Serial.println(totalHumidityReadings);
+    // Serial.print("Humidity: ");
+    // Serial.println(humidity);
+    // Serial.print("counter: ");
+    // Serial.println(counter);
+    // Serial.print("totalHumidityReadings: ");
+    // Serial.println(totalHumidityReadings);
   }
+
+    //---------------------------------
+// testing values from peripherals
+Serial.print("NTC temperature: ");
+Serial.println(temperature);
+Serial.print("DH11 Humidity: ");
+Serial.println(humidity);
+Serial.print("DH11 Temperature: ");
+Serial.println(dht.readTemperature());
+Serial.print("RTC DS3231 Temperature: ");
+Serial.println(rtc.temp()  / 100);
+Serial.println(' ');
+
+
+
+      //---------------------------------
 
 
   //---------------------------------
@@ -632,7 +645,7 @@ void drawTimeScalePoint(int timePoint, int xMin, int xMax, int xStart, int xEnd,
 
 //like the map function but accommodates floats
 float mapf(float value, int inputMin, int inputMax, int outputMin, int outputMax) {
-  Serial.print("mapf is returning: ");
-  Serial.println((value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin);
+  //Serial.print("mapf is returning: ");
+  //Serial.println((value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin);
   return (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin;
 }
