@@ -1,11 +1,14 @@
 using namespace std;
 #include <Adafruit_GFX.h>     // Core graphics library
 #include <Adafruit_ST7789.h>  // Hardware-specific library for ST7789
+#include <Wire.h>
 #include <SPI.h>
 #include <math.h>
 #include <Arduino.h>
 #include <uRTCLib.h>
 #include <DHT.h>
+#include <Adafruit_Sensor.h>
+#include "Adafruit_BME680.h"
 
 //---------------------------------------------------------------------------------
 //screencode
@@ -57,6 +60,23 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 //If you arent able to use the designated SPI pins for your board, use the following instead:
 //Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
 //---------------------------------------------------------------------------------
+//BME680
+#define BME_SCK 52
+#define BME_MISO 50
+#define BME_MOSI 51
+#define BME_CS 44
+
+#define SEALEVELPRESSURE_HPA (1013.25)
+
+Adafruit_BME680 bme(BME_CS); // hardware SPI
+
+float bme_temp;
+float bme_humidity;
+float bme_voc;
+float bme_hpa; //note: 1 hPa == 1 mbar
+
+
+//---------------------------------------------------------------------------------
 //theremistor code
 // pins for ntc thermistor
 #define ntcInput A1  // analog read pin connects to rail with thermistor and resistor
@@ -102,6 +122,8 @@ const int maxTemp = 26;
 const int minHumidity = 25;
 const int maxHumidity = 75;
 
+//TODO:max/min voc, hpa
+
 int x;
 int y;
 
@@ -119,13 +141,23 @@ int previousMinute;
 int pixelPos;
 int previousPixelPos;
 int counter;
+
+//TODO:perhaps move these some where else, doesnt make sense its with the RTC section
 //temp variables
 float totalTempReadings;
 float averageTempReading;
 float previousaverageTempReading;
 
+float bmeTotalTempReadings;
+float bmeAverageTempReading;
+float bmePreviousaverageTempReading;
+
+//TODO: do these really need to be global variables?
 int mapTopTemp;
 int mapTopPreviousTemp;
+
+int mapBmeTopTemp;
+int mapBmeTopPreviousTemp;
 
 int mapMiddleTemp;
 int mapMiddlePreviousTemp;
@@ -135,8 +167,15 @@ float totalHumidityReadings;
 float averageHumidityReading;
 float previousaverageHumidityReading;
 
+float bmeTotalHumidityReadings;
+float bmeAverageHumidityReading;
+float bmePreviousaverageHumidityReading;
+
 int mapTopHumidity;
 int mapTopPreviousHumidity;
+
+int mapBmeTopHumidity;
+int mapBmeTopPreviousHumidity;
 
 int mapMiddleHumidity;
 int mapMiddlePreviousHumidity;
@@ -161,6 +200,25 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   // set day of week (1=Sunday, 7=Saturday)
 
 
+
+  //BME680
+  if (!bme.begin()) {
+    Serial.println("Could not find a valid BME680 sensor, check wiring!");
+    while (1);
+  }
+    // bme Set up oversampling and filter initialization
+  bme.setTemperatureOversampling(BME680_OS_8X);
+  bme.setHumidityOversampling(BME680_OS_2X);
+  bme.setPressureOversampling(BME680_OS_4X);
+  bme.setIIRFilterSize(BME680_FILTER_SIZE_3);
+  bme.setGasHeater(320, 150); // 320*C for 150 ms
+
+
+  //thermistor
+  pinMode(ntcInput, INPUT);  // analog
+
+  
+
   rtc.refresh();
   currentMinute = rtc.minute();
   previousMinute = rtc.minute();
@@ -169,7 +227,9 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   previousPixelPos = ((rtc.hour() * 60) + (rtc.minute())) / 8;
   counter = 0;
   totalTempReadings = 0;
+  bmeTotalTempReadings = 0;
   totalHumidityReadings = 0;
+  bmeTotalHumidityReadings = 0;
 
 
   R2 = R1 * (1023.0 / (float)(analogRead(ntcInput)) - 1.0);
@@ -178,11 +238,10 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   //rounds temperature to one decimal place.
   previousaverageTempReading = round(temperature * 10) / 10.0;
   previousaverageHumidityReading = dht.readHumidity();
+    previousBmeaverageTempReading = bme.readTemperature();
+  previousBmeaverageHumidityReading = bme.readHumidity();
 
-
-
-  //thermistor
-  pinMode(ntcInput, INPUT);  // analog
+  
 
   //display
   tft.init(240, 320);
@@ -364,19 +423,17 @@ void loop() {
 
   //moving time bar that pans left to right with time and erases the old data
   if (pixelPos != previousPixelPos) {
-    //erases older line
+    //erases older lines top graph
     tft.drawFastVLine(graphXPos + pixelPos + 2, graphTopYPos, graphHeight, ST77XX_WHITE);
     tft.drawRect(graphXPos + pixelPos, graphTopYPos, 2, graphHeight + 1, ST77XX_BLACK);
-
-
+    //erases older lines middle graph
     tft.drawFastVLine(graphXPos + pixelPos + 2, graphMiddleYPos, graphHeight, ST77XX_WHITE);
     tft.drawRect(graphXPos + pixelPos, graphMiddleYPos, 2, graphHeight + 1, ST77XX_BLACK);
 
     if (pixelPos == 0) {
-
+      //erases the white line scrub line from right of graph
       tft.drawFastVLine(graphXPos + graphWidth + 2, graphTopYPos, graphHeight, ST77XX_BLACK);
       tft.drawFastVLine(graphXPos + graphWidth + 1, graphTopYPos, graphHeight, ST77XX_BLACK);
-
 
       tft.drawFastVLine(graphXPos + graphWidth + 2, graphMiddleYPos, graphHeight, ST77XX_BLACK);
       tft.drawFastVLine(graphXPos + graphWidth + 1, graphMiddleYPos, graphHeight, ST77XX_BLACK);
@@ -395,6 +452,8 @@ void loop() {
     //get the average reading
     averageTempReading = (float)totalTempReadings / (float)counter;          //we actually dont need to round, we have enough pixels to display halve values
     averageHumidityReading = (float)totalHumidityReadings / (float)counter;  // dont round
+
+
 
 
     // Serial.print("assinging ");
@@ -488,17 +547,40 @@ void loop() {
   }
 
     //---------------------------------
+      if (! bme.performReading()) {
+    Serial.println("Failed to perform reading :(");
+    return;
+  }
 // testing values from peripherals
-Serial.print("NTC temperature: ");
-Serial.println(temperature);
-Serial.print("DH11 Humidity: ");
-Serial.println(humidity);
-Serial.print("DH11 Temperature: ");
-Serial.println(dht.readTemperature());
-Serial.print("RTC DS3231 Temperature: ");
-Serial.println(rtc.temp()  / 100);
-Serial.println(' ');
+//uncomment if want serial
+// Serial.print("NTC temperature: ");
+// Serial.println(temperature);
 
+// Serial.print("DH11 Humidity: ");
+// Serial.println(humidity);
+// Serial.print("DH11 Temperature: ");
+// Serial.println(dht.readTemperature());
+
+// Serial.print("RTC DS3231 Temperature: ");
+// Serial.println(rtc.temp()  / 100);
+
+
+//   Serial.print("BME Temperature = ");
+//   Serial.print(bme.temperature);
+//   Serial.println(" *C");
+//   Serial.print("BME Pressure = ");
+//   Serial.print(bme.pressure / 100.0);
+//   Serial.println(" hPa");
+//   Serial.print("BME Humidity = ");
+//   Serial.print(bme.humidity);
+//   Serial.println(" %");
+//   Serial.print("BME Gas = ");
+//   Serial.print(bme.gas_resistance / 1000.0);
+//   Serial.println(" KOhms");
+//   Serial.print("BME Approx. Altitude = ");
+//   Serial.print(bme.readAltitude(SEALEVELPRESSURE_HPA));
+//   Serial.println(" m");
+//   Serial.println(' ');
 
 
       //---------------------------------
@@ -537,7 +619,7 @@ Serial.println(' ');
   tft.setCursor(5, 180);
 
   tft.print("Temp:");
-  tft.print(temperature);
+  tft.print(bme.temperature);
   tft.print("c");
 
   tft.setTextColor(ST77XX_WHITE, ST77XX_BLACK);
@@ -552,7 +634,7 @@ Serial.println(' ');
   tft.setTextColor(PURPLE, ST77XX_BLACK);
   tft.setCursor(145, 180);
   tft.print("Humidity:");
-  tft.print(humidity);
+  tft.print(bme.humidity);
   tft.print("%");
 
   //BOTTOM
@@ -560,25 +642,25 @@ Serial.println(' ');
   tft.setTextColor(BLUE, ST77XX_BLACK);
   tft.setCursor(5, 190);
 
-  tft.print("Temp:");
-  tft.print(temperature);
-  tft.print("c");
+  tft.print("VOC:");
+  tft.print(bme.gas_resistance / 1000.0);
+  //tft.print("");
 
 
   tft.setTextColor(ST77XX_CYAN, ST77XX_BLACK);
   tft.setCursor(75, 190);
 
-  tft.print("Temp:");
-  tft.print(temperature);
-  tft.print("c");
+  tft.print("Pressure:");
+  tft.print(bme.pressure / 100.0);
+  //tft.print("");
 
 
 
-  tft.setTextColor(RED, ST77XX_BLACK);
-  tft.setCursor(145, 190);
-  tft.print("Humidity:");
-  tft.print(humidity);
-  tft.print("%");
+  // tft.setTextColor(RED, ST77XX_BLACK);
+  // tft.setCursor(145, 190);
+  // tft.print(":");
+  // tft.print(humidity);
+  // tft.print("%");
 
 
 
