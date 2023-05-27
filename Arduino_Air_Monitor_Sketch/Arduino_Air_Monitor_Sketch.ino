@@ -75,6 +75,7 @@ float bme_humidity;
 float bme_voc;
 float bme_hpa; //note: 1 hPa == 1 mbar
 
+//TODO:ok so i dont think there is a way to calibrate the temp with the adafruit lib, so we will have to try a different lib
 
 //---------------------------------------------------------------------------------
 //theremistor code
@@ -152,6 +153,12 @@ float bmeTotalTempReadings;
 float bmeAverageTempReading;
 float bmePreviousaverageTempReading;
 
+//deltaTemp difference between bme and ntc
+float dAvgTemp;
+float dPrevAvgTemp;
+int mapDTemp;
+int mapDPreviousTemp;
+
 //TODO: do these really need to be global variables?
 int mapTopTemp;
 int mapTopPreviousTemp;
@@ -174,8 +181,8 @@ float bmePreviousaverageHumidityReading;
 int mapTopHumidity;
 int mapTopPreviousHumidity;
 
-int mapBmeTopHumidity;
-int mapBmeTopPreviousHumidity;
+int mapBmeMiddleHumidity;
+int mapBmeMiddlePreviousHumidity;
 
 int mapMiddleHumidity;
 int mapMiddlePreviousHumidity;
@@ -238,8 +245,10 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   //rounds temperature to one decimal place.
   previousaverageTempReading = round(temperature * 10) / 10.0;
   previousaverageHumidityReading = dht.readHumidity();
-    previousBmeaverageTempReading = bme.readTemperature();
-  previousBmeaverageHumidityReading = bme.readHumidity();
+    bmePreviousaverageTempReading = bme.readTemperature();
+  bmePreviousaverageHumidityReading = bme.readHumidity();
+
+  dPrevAvgTemp = bmePreviousaverageTempReading-previousaverageTempReading;
 
   
 
@@ -264,14 +273,14 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   drawScalePoint(26, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
 
   //middle left axis
-  tft.drawFastVLine(graphXPos - 3, graphMiddleYPos, graphHeight, ST77XX_YELLOW);
-  drawScalePoint(15, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, false, true);
-  drawScalePoint(16, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
-  drawScalePoint(18, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
-  drawScalePoint(20, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
-  drawScalePoint(22, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
-  drawScalePoint(24, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
-  drawScalePoint(26, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+  // tft.drawFastVLine(graphXPos - 3, graphMiddleYPos, graphHeight, ST77XX_YELLOW);
+  // drawScalePoint(15, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, false, true);
+  // drawScalePoint(16, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+  // drawScalePoint(18, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+  // drawScalePoint(20, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+  // drawScalePoint(22, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+  // drawScalePoint(24, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+  // drawScalePoint(26, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
 
 
   //bottom left axis
@@ -295,14 +304,20 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
    drawDualScalePoint(26, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
 
   //draw right axis (top right humidity)
-  tft.drawFastVLine(graphXPos + graphWidth + 3, graphTopYPos, graphHeight, ST77XX_CYAN);
-  drawScalePoint(25, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false);
-  drawScalePoint(30, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
-  drawScalePoint(40, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
-  drawScalePoint(50, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
-  drawScalePoint(60, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
-  drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
-  drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false);
+  // tft.drawFastVLine(graphXPos + graphWidth + 3, graphTopYPos, graphHeight, ST77XX_CYAN);
+  // drawScalePoint(25, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false);
+  // drawScalePoint(30, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
+  // drawScalePoint(40, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
+  // drawScalePoint(50, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
+  // drawScalePoint(60, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
+  // drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
+  // drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false);
+
+//delta temp scale top
+    tft.drawFastVLine(graphXPos + graphWidth + 3, graphTopYPos, graphHeight, ST77XX_RED);
+  drawScalePoint(4, 4, 5, graphHeight + graphTopYPos, graphTopYPos, ST77XX_RED, true, false);
+  drawScalePoint(5, 4, 5, graphHeight + graphTopYPos, graphTopYPos, ST77XX_RED, true, false);
+
 
   //middle right axis
   tft.drawFastVLine(graphXPos + graphWidth + 3, graphMiddleYPos, graphHeight, PURPLE);
@@ -396,6 +411,10 @@ void loop() {
   //rounds temperature to one decimal place.
   temperature = round(temperature * 10) / 10.0;
 
+  bme_temp = bme.readTemperature();
+  bme_humidity = bme.readHumidity();
+
+
   //Humidity
   humidity = dht.readHumidity();
   while (isnan(humidity)) {
@@ -453,8 +472,11 @@ void loop() {
     averageTempReading = (float)totalTempReadings / (float)counter;          //we actually dont need to round, we have enough pixels to display halve values
     averageHumidityReading = (float)totalHumidityReadings / (float)counter;  // dont round
 
+    bmeAverageTempReading = (float)bmeTotalTempReadings/ (float)counter;
+    bmeAverageHumidityReading = (float)bmeTotalHumidityReadings/ (float)counter;
 
-
+//delta temp
+    dAvgTemp = bmeAverageTempReading-averageTempReading;
 
     // Serial.print("assinging ");
     // Serial.print(averageTempReading);
@@ -475,19 +497,67 @@ void loop() {
       averageHumidityReading = minHumidity;
     }
 
+    //TODO:safety limit for bme temp or humidity
+
+
     //get values for graphing
-    //temp
+    //temp for top gragh
     mapTopTemp = mapf(averageTempReading, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos);
     mapTopPreviousTemp = mapf(previousaverageTempReading, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos);
+
+   //BME temp for top graph
+    mapBmeTopTemp = mapf(bmeAverageTempReading, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos);
+    mapBmeTopPreviousTemp = mapf(bmePreviousaverageTempReading, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos);
+
+//delta map
+mapDTemp = mapf(dAvgTemp, 4, 5, graphHeight + graphTopYPos, graphTopYPos);
+mapDPreviousTemp = mapf(dPrevAvgTemp, 4, 5, graphHeight + graphTopYPos, graphTopYPos);
+
+
+
     //humidity
-    mapTopHumidity = mapf(averageHumidityReading, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos);
-    mapTopPreviousHumidity = mapf(previousaverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos);
+    // mapTopHumidity = mapf(averageHumidityReading, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos);
+    // mapTopPreviousHumidity = mapf(previousaverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos);
+
+  //draw top graph temp
+    tft.drawLine(graphXPos + previousPixelPos, mapTopPreviousTemp, graphXPos + pixelPos, mapTopTemp, ST77XX_GREEN);
+    previousaverageTempReading = averageTempReading;
+    totalTempReadings = 0;
+//draw bme temp graph
+    tft.drawLine(graphXPos + previousPixelPos, mapBmeTopPreviousTemp, graphXPos + pixelPos, mapBmeTopTemp, ST77XX_CYAN);
+    bmePreviousaverageTempReading = bmeAverageTempReading;
+    bmeTotalTempReadings = 0;
+
+    //draw delta temp
+        tft.drawLine(graphXPos + previousPixelPos, mapDPreviousTemp, graphXPos + pixelPos, mapDTemp, ST77XX_RED);
+    dPrevAvgTemp = dAvgTemp;
+  
+
+
 
     //test middle graph
-    mapMiddleTemp = mapf(averageTempReading, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos);
-    mapMiddlePreviousTemp = mapf(previousaverageTempReading, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos);
+    // mapMiddleTemp = mapf(averageTempReading, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos);
+    // mapMiddlePreviousTemp = mapf(previousaverageTempReading, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos);
+
+    //humidity for middle graph
     mapMiddleHumidity = mapf(averageHumidityReading, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos);
     mapMiddlePreviousHumidity = mapf(previousaverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos);
+
+//bme humidity for middle graph
+  mapBmeMiddleHumidity = mapf(bmeAverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos);
+    mapBmeMiddlePreviousHumidity = mapf(bmePreviousaverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos);
+
+        //draw humdity graph middle
+    tft.drawLine(graphXPos + previousPixelPos, mapMiddlePreviousHumidity, graphXPos + pixelPos, mapMiddleHumidity, PURPLE);
+              previousaverageHumidityReading = averageHumidityReading;
+    totalHumidityReadings = 0;
+
+    //draw bme humidity graph middle
+      tft.drawLine(graphXPos + previousPixelPos, mapBmeMiddlePreviousHumidity, graphXPos + pixelPos, mapBmeMiddleHumidity, ST77XX_YELLOW);
+
+        bmePreviousaverageHumidityReading = bmeAverageHumidityReading;
+    bmeTotalHumidityReadings = 0;
+
 
 
     // Serial.print("mapaverageTempReading yPos: ");
@@ -502,21 +572,21 @@ void loop() {
 
 
 
-    tft.drawLine(graphXPos + previousPixelPos, mapTopPreviousTemp, graphXPos + pixelPos, mapTopTemp, ST77XX_GREEN);
+
+
 
     //TODO:test
-    tft.drawLine(graphXPos + previousPixelPos, mapMiddlePreviousTemp, graphXPos + pixelPos, mapMiddleTemp, ST77XX_YELLOW);
+    //tft.drawLine(graphXPos + previousPixelPos, mapMiddlePreviousTemp, graphXPos + pixelPos, mapMiddleTemp, ST77XX_YELLOW);
 
-    previousaverageTempReading = averageTempReading;
-    totalTempReadings = 0;
 
-    tft.drawLine(graphXPos + previousPixelPos, mapTopPreviousHumidity, graphXPos + pixelPos, mapTopHumidity, ST77XX_CYAN);
+    //tft.drawLine(graphXPos + previousPixelPos, mapTopPreviousHumidity, graphXPos + pixelPos, mapTopHumidity, ST77XX_CYAN);
 
-    //TODO: test
-    tft.drawLine(graphXPos + previousPixelPos, mapMiddlePreviousHumidity, graphXPos + pixelPos, mapMiddleHumidity, PURPLE);
 
-    previousaverageHumidityReading = averageHumidityReading;
-    totalHumidityReadings = 0;
+
+
+
+
+
 
     previousPixelPos = pixelPos;
     counter = 0;
@@ -529,7 +599,10 @@ void loop() {
     previousMinute = currentMinute;
     counter++;
     totalTempReadings += temperature;
+    bmeTotalTempReadings += bme_temp;
+
     totalHumidityReadings += humidity;
+    bmeTotalHumidityReadings += bme_humidity;
 
     // Serial.print("temperature: ");
     // Serial.println(temperature);
@@ -608,9 +681,14 @@ void loop() {
 
   tft.setTextColor(ST77XX_CYAN, ST77XX_BLACK);
   tft.setCursor(145, 0);
-  tft.print("Humidity:");
-  tft.print(humidity);
-  tft.print("%");
+  tft.print("BME T:");
+  tft.print(bme_temp);
+  tft.print("c");
+
+  //difference between bme and ntc
+  tft.setTextColor(ST77XX_RED, ST77XX_BLACK);
+  tft.setCursor(215,0);
+  tft.print(bme_temp-temperature);
 
 
   //MIDDLE
@@ -618,9 +696,9 @@ void loop() {
   tft.setTextColor(ST77XX_YELLOW, ST77XX_BLACK);
   tft.setCursor(5, 180);
 
-  tft.print("Temp:");
-  tft.print(bme.temperature);
-  tft.print("c");
+  tft.print("BME H:");
+  tft.print(bme_humidity);
+  tft.print("%");
 
   tft.setTextColor(ST77XX_WHITE, ST77XX_BLACK);
   tft.setCursor(85, 180);
@@ -634,7 +712,7 @@ void loop() {
   tft.setTextColor(PURPLE, ST77XX_BLACK);
   tft.setCursor(145, 180);
   tft.print("Humidity:");
-  tft.print(bme.humidity);
+  tft.print(humidity);
   tft.print("%");
 
   //BOTTOM
