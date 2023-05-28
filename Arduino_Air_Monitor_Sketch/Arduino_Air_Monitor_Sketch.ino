@@ -315,8 +315,8 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
 
 //delta temp scale top
     tft.drawFastVLine(graphXPos + graphWidth + 3, graphTopYPos, graphHeight, ST77XX_RED);
-  drawScalePoint(4, 4, 5, graphHeight + graphTopYPos, graphTopYPos, ST77XX_RED, true, false);
-  drawScalePoint(5, 4, 5, graphHeight + graphTopYPos, graphTopYPos, ST77XX_RED, true, false);
+  drawScalePoint(4, 4, 7, graphHeight + graphTopYPos, graphTopYPos, ST77XX_RED, true, false);
+  drawScalePoint(7, 4, 7, graphHeight + graphTopYPos, graphTopYPos, ST77XX_RED, true, false);
 
 
   //middle right axis
@@ -510,8 +510,8 @@ void loop() {
     mapBmeTopPreviousTemp = mapf(bmePreviousaverageTempReading, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos);
 
 //delta map
-mapDTemp = mapf(dAvgTemp, 4, 5, graphHeight + graphTopYPos, graphTopYPos);
-mapDPreviousTemp = mapf(dPrevAvgTemp, 4, 5, graphHeight + graphTopYPos, graphTopYPos);
+mapDTemp = mapf(dAvgTemp, 4, 7, graphHeight + graphTopYPos, graphTopYPos);
+mapDPreviousTemp = mapf(dPrevAvgTemp, 4, 7, graphHeight + graphTopYPos, graphTopYPos);
 
 
 
