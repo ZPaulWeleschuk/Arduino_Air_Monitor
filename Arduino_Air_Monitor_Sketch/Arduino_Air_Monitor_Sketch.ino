@@ -488,10 +488,6 @@ void loop() {
     }
 
 
-    // Serial.print("Time: ");
-    // Serial.print(rtc.hour());
-    // Serial.print(":");
-    // Serial.println(rtc.minute());
 
     //get the average reading
     averageTempReading = (float)totalTempReadings / (float)counter;          
@@ -505,10 +501,7 @@ void loop() {
 
     averageVoc = (float)totalVoc / (float)counter;
 
-    // Serial.print("assinging ");
-    // Serial.print(averageTempReading);
-    // Serial.print(" to position ");
-    // Serial.println(previousPixelPos);
+
 
 
     //safty limit on  temp value
@@ -558,11 +551,6 @@ mapDPreviousTemp = mapf(dPrevAvgTemp, 4, 7, graphHeight + graphTopYPos, graphTop
 
 
 
-
-    //test middle graph
-    // mapMiddleTemp = mapf(averageTempReading, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos);
-    // mapMiddlePreviousTemp = mapf(previousaverageTempReading, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos);
-
     //humidity for middle graph
     mapMiddleHumidity = mapf(averageHumidityReading, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos);
     mapMiddlePreviousHumidity = mapf(previousaverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos);
@@ -584,16 +572,6 @@ mapDPreviousTemp = mapf(dPrevAvgTemp, 4, 7, graphHeight + graphTopYPos, graphTop
 
 
 
-    // Serial.print("mapaverageTempReading yPos: ");
-    // Serial.println(mapTopTemp);
-    // Serial.print(" @ xPos:");
-    // Serial.println(graphXPos + pixelPos);
-
-    // Serial.print("mapaverageHumidityReading yPos: ");
-    // Serial.println(mapTopHumidity);
-    // Serial.print(" @ xPos:");
-    // Serial.println(graphXPos + pixelPos);
-
 
 
 //bottom graph
@@ -603,16 +581,6 @@ mapPreviousVoc = mapf(averagePreviousVoc, minVoc, maxVoc, graphHeight+ graphBott
 tft.drawLine(graphXPos+previousPixelPos, mapPreviousVoc, graphXPos +pixelPos, mapVoc,RED );
 averagePreviousVoc = averageVoc;
 totalVoc = 0;
-
-
-
-
-    //TODO:test
-    //tft.drawLine(graphXPos + previousPixelPos, mapMiddlePreviousTemp, graphXPos + pixelPos, mapMiddleTemp, ST77XX_YELLOW);
-
-
-    //tft.drawLine(graphXPos + previousPixelPos, mapTopPreviousHumidity, graphXPos + pixelPos, mapTopHumidity, ST77XX_CYAN);
-
 
 
 
