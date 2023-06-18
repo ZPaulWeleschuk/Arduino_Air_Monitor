@@ -7,6 +7,7 @@ using namespace std;
 #include <Arduino.h>
 #include <uRTCLib.h>
 #include <DHT.h>
+#include <DHT_U.h>
 #include <Adafruit_Sensor.h>
 #include "Adafruit_BME680.h"
 //TODO:bosch apparently has a library for the bme that can calc voc
@@ -96,9 +97,9 @@ float temperature;
 
 //---------------------------------------------------------------------------------
 //Humidity Sensor
-#define DHTTYPE DHT11   //creates dht object
-#define DHT11DataPin 8  //defines arduino pin
-DHT dht(DHT11DataPin, DHTTYPE);
+#define DHTTYPE DHT22   //creates dht object
+#define DHT22DataPin 8  //defines arduino pin
+DHT dht(DHT22DataPin, DHTTYPE);
 float humidity;
 
 
