@@ -63,6 +63,8 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 //If you arent able to use the designated SPI pins for your board, use the following instead:
 //Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
 //---------------------------------------------------------------------------------
+//TODO: convert to bsec library and use i2c protocol with pull down resistors
+//TODO: i2c has to share the same bus as RTC
 //BME680
 #define BME_SCK 52
 #define BME_MISO 50
