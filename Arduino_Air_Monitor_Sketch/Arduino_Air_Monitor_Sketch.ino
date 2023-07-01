@@ -9,7 +9,9 @@ using namespace std;
 #include <DHT.h>
 #include <DHT_U.h>
 #include <Adafruit_Sensor.h>
-#include "Adafruit_BME680.h"
+
+#include "bsec.h"
+
 //TODO:bosch apparently has a library for the bme that can calc voc
 //should check it out
 
@@ -63,24 +65,21 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 //If you arent able to use the designated SPI pins for your board, use the following instead:
 //Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
 //---------------------------------------------------------------------------------
-//TODO: convert to bsec library and use i2c protocol with pull down resistors
-//TODO: i2c has to share the same bus as RTC
 //BME680
-#define BME_SCK 52
-#define BME_MISO 50
-#define BME_MOSI 51
-#define BME_CS 44
+//running on I2C protocol
 
-#define SEALEVELPRESSURE_HPA (1013.25)
+// float bme_temp;
+// float bme_humidity;
+float bme_IAQ;
+float bme_pressure; //note: in Pa
 
-Adafruit_BME680 bme(BME_CS); // hardware SPI
+// Helper functions declarations
+void checkIaqSensorStatus(void);
+void errLeds(void);
 
-float bme_temp;
-float bme_humidity;
-float bme_voc;
-float bme_hpa; //note: 1 hPa == 1 mbar
+// Create an object of the class Bsec
+Bsec BME;
 
-//TODO:ok so i dont think there is a way to calibrate the temp with the adafruit lib, so we will have to try a different lib
 
 //---------------------------------------------------------------------------------
 //theremistor code
@@ -128,10 +127,11 @@ const int maxTemp = 26;
 const int minHumidity = 25;
 const int maxHumidity = 75;
 
-const int minVoc = 25;
-const int maxVoc = 500;
+const int minIaq = 0;
+const int maxIaq = 200;
 
-//TODO:max/min voc, hpa
+const int minPressure =86000;
+const int maxPressure = 91000;
 
 int x;
 int y;
@@ -157,22 +157,36 @@ float totalTempReadings;
 float averageTempReading;
 float previousaverageTempReading;
 
-float bmeTotalTempReadings;
-float bmeAverageTempReading;
-float bmePreviousaverageTempReading;
+// float bmeTotalTempReadings;
+// float bmeAverageTempReading;
+// float bmePreviousaverageTempReading;
+
+float totalIAQReadings;
+float averageIAQReading;
+float previousAverageIAQReading;
+int mapMiddleIAQ;
+int mapMiddlePreviousIAQ;
+
+float totalPressureReadings;
+float averagePressureReading;
+float previousAveragePressureReading;
+int mapMiddlePressure;
+int mapMiddlePreviousPressure;
+
+
 
 //deltaTemp difference between bme and ntc
-float dAvgTemp;
-float dPrevAvgTemp;
-int mapDTemp;
-int mapDPreviousTemp;
+// float dAvgTemp;
+// float dPrevAvgTemp;
+// int mapDTemp;
+// int mapDPreviousTemp;
 
 //TODO: do these really need to be global variables?
 int mapTopTemp;
 int mapTopPreviousTemp;
 
-int mapBmeTopTemp;
-int mapBmeTopPreviousTemp;
+// int mapBmeTopTemp;
+// int mapBmeTopPreviousTemp;
 
 int mapMiddleTemp;
 int mapMiddlePreviousTemp;
@@ -182,25 +196,25 @@ float totalHumidityReadings;
 float averageHumidityReading;
 float previousaverageHumidityReading;
 
-float bmeTotalHumidityReadings;
-float bmeAverageHumidityReading;
-float bmePreviousaverageHumidityReading;
+// float bmeTotalHumidityReadings;
+// float bmeAverageHumidityReading;
+// float bmePreviousaverageHumidityReading;
 
 int mapTopHumidity;
 int mapTopPreviousHumidity;
 
-int mapBmeMiddleHumidity;
-int mapBmeMiddlePreviousHumidity;
+// int mapBmeMiddleHumidity;
+// int mapBmeMiddlePreviousHumidity;
 
 int mapMiddleHumidity;
 int mapMiddlePreviousHumidity;
 
 //VOC variables
-float totalVoc;
-float averageVoc;
-float averagePreviousVoc;
-int mapVoc;
-int mapPreviousVoc;
+// float totalVoc;
+// float averageVoc;
+// float averagePreviousVoc;
+// int mapVoc;
+// int mapPreviousVoc;
 
 //---------------------------------------------------------------------------------
 
@@ -225,16 +239,32 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
 
 
   //BME680
-  if (!bme.begin()) {
-    Serial.println("Could not find a valid BME680 sensor, check wiring!");
-    while (1);
+ pinMode(LED_BUILTIN, OUTPUT); //onboard led
+  BME.begin(BME68X_I2C_ADDR_HIGH, Wire);
+    checkIaqSensorStatus();
+      // mouse over these to see description
+      //TODO:we can probably remove some of these as we are only interested in iaq and pressure
+  bsec_virtual_sensor_t sensorList[13] = {
+    BSEC_OUTPUT_IAQ,
+    BSEC_OUTPUT_STATIC_IAQ,
+    BSEC_OUTPUT_CO2_EQUIVALENT,
+    BSEC_OUTPUT_BREATH_VOC_EQUIVALENT,
+    BSEC_OUTPUT_RAW_TEMPERATURE,
+    BSEC_OUTPUT_RAW_PRESSURE,
+    BSEC_OUTPUT_RAW_HUMIDITY,
+    BSEC_OUTPUT_RAW_GAS,
+    BSEC_OUTPUT_STABILIZATION_STATUS,
+    BSEC_OUTPUT_RUN_IN_STATUS,
+    BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_TEMPERATURE,
+    BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_HUMIDITY,
+    BSEC_OUTPUT_GAS_PERCENTAGE
+  };
+  iaqSensor.updateSubscription(sensorList, 13, BSEC_SAMPLE_RATE_LP);
+  checkIaqSensorStatus();
+  if (BME.run()){
+    previousAverageIAQReading = BME.iaq;
+    PreviousAveragePressureReading = BME.pressure;
   }
-    // bme Set up oversampling and filter initialization
-  bme.setTemperatureOversampling(BME680_OS_8X);
-  bme.setHumidityOversampling(BME680_OS_2X);
-  bme.setPressureOversampling(BME680_OS_4X);
-  bme.setIIRFilterSize(BME680_FILTER_SIZE_3);
-  bme.setGasHeater(320, 150); // 320*C for 150 ms
 
 
   //thermistor
@@ -250,9 +280,9 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   previousPixelPos = ((rtc.hour() * 60) + (rtc.minute())) / 8;
   counter = 0;
   totalTempReadings = 0;
-  bmeTotalTempReadings = 0;
   totalHumidityReadings = 0;
-  bmeTotalHumidityReadings = 0;
+  totalIAQReadings = 0;
+  totalPressureReadings = 0;
 
 
   R2 = R1 * (1023.0 / (float)(analogRead(ntcInput)) - 1.0);
@@ -261,13 +291,13 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   //rounds temperature to one decimal place.
   previousaverageTempReading = round(temperature * 10) / 10.0;
   previousaverageHumidityReading = dht.readHumidity();
-    bmePreviousaverageTempReading = bme.readTemperature();
-  bmePreviousaverageHumidityReading = bme.readHumidity();
+  //   bmePreviousaverageTempReading = bme.readTemperature();
+  // bmePreviousaverageHumidityReading = bme.readHumidity();
 
-  dPrevAvgTemp = bmePreviousaverageTempReading-previousaverageTempReading;
+  // dPrevAvgTemp = bmePreviousaverageTempReading-previousaverageTempReading;
 
 
-  averagePreviousVoc = bme.gas_resistance / 1000.0;
+  // averagePreviousVoc = bme.gas_resistance / 1000.0;
 
 
   //display
@@ -291,14 +321,24 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   drawScalePoint(26, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
 
   //middle left axis
-  // tft.drawFastVLine(graphXPos - 3, graphMiddleYPos, graphHeight, ST77XX_YELLOW);
-  // drawScalePoint(15, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, false, true);
-  // drawScalePoint(16, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
-  // drawScalePoint(18, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
-  // drawScalePoint(20, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
-  // drawScalePoint(22, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
-  // drawScalePoint(24, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
-  // drawScalePoint(26, minTemp, maxTemp, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+   tft.drawFastVLine(graphXPos - 3, graphMiddleYPos, graphHeight, ST77XX_YELLOW);
+  drawScalePoint(0, minIaq, maxIaq, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, false, true);
+  drawScalePoint(30, minIaq, maxIaq, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+  drawScalePoint(60, minIaq, maxIaq, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+  drawScalePoint(90, minIaq, maxIaq, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+  drawScalePoint(120, minIaq, maxIaq, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+  drawScalePoint(150, minIaq, maxIaq, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+  drawScalePoint(170, minIaq, maxIaq, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+  drawScalePoint(200, minIaq, maxIaq, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
+
+
+   tft.drawFastVLine(graphXPos + graphWidth + 3, graphMiddleYPos, graphHeight, ST77XX_CYAN);
+   drawScalePoint(86000, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_CYAN, false, false);
+   drawScalePoint(87000, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_CYAN, false, false);
+   drawScalePoint(88000, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_CYAN, false, false);
+   drawScalePoint(89000, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_CYAN, false, false);
+   drawScalePoint(90000, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_CYAN, false, false);
+   drawScalePoint(91000, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_CYAN, false, false);
 
 
   //bottom left axis
@@ -331,21 +371,21 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   // drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
   // drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false);
 
-//delta temp scale top
-    tft.drawFastVLine(graphXPos + graphWidth + 3, graphTopYPos, graphHeight, ST77XX_RED);
-  drawScalePoint(4, 4, 7, graphHeight + graphTopYPos, graphTopYPos, ST77XX_RED, true, false);
-  drawScalePoint(7, 4, 7, graphHeight + graphTopYPos, graphTopYPos, ST77XX_RED, true, false);
+// //delta temp scale top
+//     tft.drawFastVLine(graphXPos + graphWidth + 3, graphTopYPos, graphHeight, ST77XX_RED);
+//   drawScalePoint(4, 4, 7, graphHeight + graphTopYPos, graphTopYPos, ST77XX_RED, true, false);
+//   drawScalePoint(7, 4, 7, graphHeight + graphTopYPos, graphTopYPos, ST77XX_RED, true, false);
 
 
-  //middle right axis
-  tft.drawFastVLine(graphXPos + graphWidth + 3, graphMiddleYPos, graphHeight, PURPLE);
-  drawScalePoint(25, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, false, false);
-  drawScalePoint(30, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
-  drawScalePoint(40, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
-  drawScalePoint(50, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
-  drawScalePoint(60, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
-  drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
-  drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, false, false);
+  //top right axis
+  tft.drawFastVLine(graphXPos + graphWidth + 3, graphTopYPos, graphHeight, PURPLE);
+  drawScalePoint(25, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, PURPLE, false, false);
+  drawScalePoint(30, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, PURPLE, true, false);
+  drawScalePoint(40, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, PURPLE, true, false);
+  drawScalePoint(50, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, PURPLE, true, false);
+  drawScalePoint(60, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, PURPLE, true, false);
+  drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, PURPLE, true, false);
+  drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, PURPLE, false, false);
 
   //bottom right axis
   tft.drawFastVLine(graphXPos + graphWidth + 3, graphBottomYPos, graphHeight, RED);
@@ -764,6 +804,10 @@ void drawScalePoint(int scalePoint, int yMin, int yMax, int yStart, int yEnd, un
       } else {
         tft.setCursor(220, y - 3);
       }
+      //for pressure to convert pa to kpa
+      if (scalePoint >1000){
+        scalePoint = scalePoint/1000;
+      }
       tft.print(scalePoint);
     }
 }
@@ -813,3 +857,46 @@ float mapf(float value, int inputMin, int inputMax, int outputMin, int outputMax
   //Serial.println((value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin);
   return (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin;
 }
+
+// Helper function for bme
+void checkIaqSensorStatus(void)
+{
+  if (iaqSensor.bsecStatus != BSEC_OK) {
+    if (iaqSensor.bsecStatus < BSEC_OK) {
+      output = "BSEC error code : " + String(iaqSensor.bsecStatus);
+      Serial.println(output);
+      for (;;)//TODO:for loop runs forever
+        errLeds(); /* Halt in case of failure */
+    } else {
+      output = "BSEC warning code : " + String(iaqSensor.bsecStatus);
+      Serial.println(output);
+    }
+  }
+
+
+  if (iaqSensor.bme68xStatus != BME68X_OK) {
+    if (iaqSensor.bme68xStatus < BME68X_OK) {
+      output = "BME68X error code : " + String(iaqSensor.bme68xStatus);
+      //-2 is communication failure
+      Serial.println(output);
+      for (;;)
+        errLeds(); /* Halt in case of failure */
+    } else {
+      output = "BME68X warning code : " + String(iaqSensor.bme68xStatus);
+      Serial.println(output);
+    }
+  }
+}
+
+// Helper function for bme
+//TODO: hmmm might be a good way to determine error states . . .
+//TODO: may have to do some this in other places as it crashe more often then i would like
+void errLeds(void)
+{
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(1000);
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(1000);
+}
+
