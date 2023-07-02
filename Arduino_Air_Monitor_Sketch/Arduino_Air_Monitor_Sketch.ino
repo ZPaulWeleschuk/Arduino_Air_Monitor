@@ -71,7 +71,7 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 // float bme_temp;
 // float bme_humidity;
 float bme_IAQ;
-float bme_pressure; //note: in Pa
+float bme_pressure; //units in Pa
 
 // Helper functions declarations
 void checkIaqSensorStatus(void);
@@ -79,6 +79,13 @@ void errLeds(void);
 
 // Create an object of the class Bsec
 Bsec BME;
+
+//graph variables
+const int minIaq = 0;
+const int maxIaq = 200;
+
+const int minPressure =86000;
+const int maxPressure = 91000;
 
 
 //---------------------------------------------------------------------------------
@@ -108,6 +115,7 @@ float humidity;
 //---------------------------------------------------------------------------------
 //graphcode
 // Define variables for line graph
+//TODO:move these to their respective sections
 const int displayWidth = 240;   //x
 const int displayHeight = 320;  //y
 
@@ -127,11 +135,6 @@ const int maxTemp = 26;
 const int minHumidity = 25;
 const int maxHumidity = 75;
 
-const int minIaq = 0;
-const int maxIaq = 200;
-
-const int minPressure =86000;
-const int maxPressure = 91000;
 
 int x;
 int y;
@@ -470,10 +473,11 @@ void loop() {
   //rounds temperature to one decimal place.
   temperature = round(temperature * 10) / 10.0;
 
-  bme_temp = bme.readTemperature();
-  bme_humidity = bme.readHumidity();
-
-  bme_voc = bme.gas_resistance / 1000.0;
+  // bme_temp = bme.readTemperature();
+  // bme_humidity = bme.readHumidity();
+  // bme_voc = bme.gas_resistance / 1000.0;
+  bme_IAQ = BME.iaq;
+  bme_pressure = BME.pressure;
 
   //Humidity
   humidity = dht.readHumidity();
