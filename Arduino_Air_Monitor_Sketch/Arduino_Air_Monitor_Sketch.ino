@@ -539,14 +539,19 @@ void loop() {
     //get the average reading
     averageTempReading = (float)totalTempReadings / (float)counter;          
     averageHumidityReading = (float)totalHumidityReadings / (float)counter;  
+averageIAQReading = (float)totalIAQReadings / (float)counter;
+averagePressureReading = (float) totalPressureReadings / (float) counter;
 
-    bmeAverageTempReading = (float)bmeTotalTempReadings/ (float)counter;
-    bmeAverageHumidityReading = (float)bmeTotalHumidityReadings/ (float)counter;
 
-//delta temp
-    dAvgTemp = bmeAverageTempReading-averageTempReading;
+//     bmeAverageTempReading = (float)bmeTotalTempReadings/ (float)counter;
+//     bmeAverageHumidityReading = (float)bmeTotalHumidityReadings/ (float)counter;
 
-    averageVoc = (float)totalVoc / (float)counter;
+
+
+// //delta temp
+//     dAvgTemp = bmeAverageTempReading-averageTempReading;
+
+//     averageVoc = (float)totalVoc / (float)counter;
 
 
 
@@ -564,58 +569,63 @@ void loop() {
       averageHumidityReading = minHumidity;
     }
 
-    //TODO:safety limit for bme temp or humidity
-    //TODO:safetly limit on voc
+    //TODO:safety limit for iaq and pressure
+    
 
 
     //get values for graphing
     //temp for top gragh
     mapTopTemp = mapf(averageTempReading, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos);
     mapTopPreviousTemp = mapf(previousaverageTempReading, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos);
-
-   //BME temp for top graph
-    mapBmeTopTemp = mapf(bmeAverageTempReading, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos);
-    mapBmeTopPreviousTemp = mapf(bmePreviousaverageTempReading, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos);
-
-//delta map
-mapDTemp = mapf(dAvgTemp, 4, 7, graphHeight + graphTopYPos, graphTopYPos);
-mapDPreviousTemp = mapf(dPrevAvgTemp, 4, 7, graphHeight + graphTopYPos, graphTopYPos);
-
-  //draw top graph temp
+      //draw top graph temp
     tft.drawLine(graphXPos + previousPixelPos, mapTopPreviousTemp, graphXPos + pixelPos, mapTopTemp, ST77XX_GREEN);
     previousaverageTempReading = averageTempReading;
     totalTempReadings = 0;
+
+
+
+   //BME temp for top graph
+    // mapBmeTopTemp = mapf(bmeAverageTempReading, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos);
+    // mapBmeTopPreviousTemp = mapf(bmePreviousaverageTempReading, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos);
+
+//delta map
+// mapDTemp = mapf(dAvgTemp, 4, 7, graphHeight + graphTopYPos, graphTopYPos);
+// mapDPreviousTemp = mapf(dPrevAvgTemp, 4, 7, graphHeight + graphTopYPos, graphTopYPos);
+
+
 //draw bme temp graph
-    tft.drawLine(graphXPos + previousPixelPos, mapBmeTopPreviousTemp, graphXPos + pixelPos, mapBmeTopTemp, ST77XX_CYAN);
-    bmePreviousaverageTempReading = bmeAverageTempReading;
-    bmeTotalTempReadings = 0;
+    // tft.drawLine(graphXPos + previousPixelPos, mapBmeTopPreviousTemp, graphXPos + pixelPos, mapBmeTopTemp, ST77XX_CYAN);
+    // bmePreviousaverageTempReading = bmeAverageTempReading;
+    // bmeTotalTempReadings = 0;
 
     //draw delta temp
-        tft.drawLine(graphXPos + previousPixelPos, mapDPreviousTemp, graphXPos + pixelPos, mapDTemp, ST77XX_RED);
-    dPrevAvgTemp = dAvgTemp;
+    //     tft.drawLine(graphXPos + previousPixelPos, mapDPreviousTemp, graphXPos + pixelPos, mapDTemp, ST77XX_RED);
+    // dPrevAvgTemp = dAvgTemp;
   
-
-
-
-
-    //humidity for middle graph
-    mapMiddleHumidity = mapf(averageHumidityReading, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos);
-    mapMiddlePreviousHumidity = mapf(previousaverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos);
-
-//bme humidity for middle graph
-  mapBmeMiddleHumidity = mapf(bmeAverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos);
-    mapBmeMiddlePreviousHumidity = mapf(bmePreviousaverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos);
-
-        //draw humdity graph middle
-    tft.drawLine(graphXPos + previousPixelPos, mapMiddlePreviousHumidity, graphXPos + pixelPos, mapMiddleHumidity, PURPLE);
+//map and draw humidity on top graph
+    mapTopHumidity = mapf(averageHumidityReading, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos);
+    mapTopPreviousHumidity = mapf(previousaverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos);
+    tft.drawLine(graphXPos + previousPixelPos, mapTopPreviousHumidity, graphXPos + pixelPos, mapTopHumidity, ST77XX_CYAN);
               previousaverageHumidityReading = averageHumidityReading;
     totalHumidityReadings = 0;
 
-    //draw bme humidity graph middle
-      tft.drawLine(graphXPos + previousPixelPos, mapBmeMiddlePreviousHumidity, graphXPos + pixelPos, mapBmeMiddleHumidity, ST77XX_YELLOW);
+    //humidity for middle graph
+    // mapMiddleHumidity = mapf(averageHumidityReading, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos);
+    // mapMiddlePreviousHumidity = mapf(previousaverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos);
 
-        bmePreviousaverageHumidityReading = bmeAverageHumidityReading;
-    bmeTotalHumidityReadings = 0;
+//bme humidity for middle graph
+  // mapBmeMiddleHumidity = mapf(bmeAverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos);
+  //   mapBmeMiddlePreviousHumidity = mapf(bmePreviousaverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos);
+
+        //draw humdity graph middle
+    // tft.drawLine(graphXPos + previousPixelPos, mapMiddlePreviousHumidity, graphXPos + pixelPos, mapMiddleHumidity, PURPLE);
+    //           previousaverageHumidityReading = averageHumidityReading;
+    // totalHumidityReadings = 0;
+
+    //draw bme humidity graph middle
+      // tft.drawLine(graphXPos + previousPixelPos, mapBmeMiddlePreviousHumidity, graphXPos + pixelPos, mapBmeMiddleHumidity, ST77XX_YELLOW);
+    //     bmePreviousaverageHumidityReading = bmeAverageHumidityReading;
+    // bmeTotalHumidityReadings = 0;
 
 
 
@@ -623,11 +633,11 @@ mapDPreviousTemp = mapf(dPrevAvgTemp, 4, 7, graphHeight + graphTopYPos, graphTop
 
 //bottom graph
 //voc
-mapVoc = mapf(averageVoc, minVoc, maxVoc, graphHeight+ graphBottomYPos, graphBottomYPos);
-mapPreviousVoc = mapf(averagePreviousVoc, minVoc, maxVoc, graphHeight+ graphBottomYPos, graphBottomYPos);
-tft.drawLine(graphXPos+previousPixelPos, mapPreviousVoc, graphXPos +pixelPos, mapVoc,RED );
-averagePreviousVoc = averageVoc;
-totalVoc = 0;
+// mapVoc = mapf(averageVoc, minVoc, maxVoc, graphHeight+ graphBottomYPos, graphBottomYPos);
+// mapPreviousVoc = mapf(averagePreviousVoc, minVoc, maxVoc, graphHeight+ graphBottomYPos, graphBottomYPos);
+// tft.drawLine(graphXPos+previousPixelPos, mapPreviousVoc, graphXPos +pixelPos, mapVoc,RED );
+// averagePreviousVoc = averageVoc;
+// totalVoc = 0;
 
 
 
