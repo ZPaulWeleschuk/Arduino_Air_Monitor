@@ -262,11 +262,11 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
     BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_HUMIDITY,
     BSEC_OUTPUT_GAS_PERCENTAGE
   };
-  iaqSensor.updateSubscription(sensorList, 13, BSEC_SAMPLE_RATE_LP);
+  BME.updateSubscription(sensorList, 13, BSEC_SAMPLE_RATE_LP);
   checkIaqSensorStatus();
   if (BME.run()){
     previousAverageIAQReading = BME.iaq;
-    PreviousAveragePressureReading = BME.pressure;
+    previousAveragePressureReading = BME.pressure;
   }
 
 
@@ -391,15 +391,15 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, PURPLE, false, false);
 
   //bottom right axis
-  tft.drawFastVLine(graphXPos + graphWidth + 3, graphBottomYPos, graphHeight, RED);
-  drawScalePoint(25, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, false, false);
-  drawScalePoint(100, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
-    drawScalePoint(175, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
-  drawScalePoint(250, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
-  drawScalePoint(325, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
-  drawScalePoint(400, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
-  drawScalePoint(475, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
-  drawScalePoint(500, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, false, false);
+  // tft.drawFastVLine(graphXPos + graphWidth + 3, graphBottomYPos, graphHeight, RED);
+  // drawScalePoint(25, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, false, false);
+  // drawScalePoint(100, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
+  //   drawScalePoint(175, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
+  // drawScalePoint(250, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
+  // drawScalePoint(325, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
+  // drawScalePoint(400, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
+  // drawScalePoint(475, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
+  // drawScalePoint(500, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, false, false);
 
 
   //draw time axis
@@ -582,6 +582,26 @@ averagePressureReading = (float) totalPressureReadings / (float) counter;
     previousaverageTempReading = averageTempReading;
     totalTempReadings = 0;
 
+//map and draw humidity on top graph
+    mapTopHumidity = mapf(averageHumidityReading, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos);
+    mapTopPreviousHumidity = mapf(previousaverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos);
+    tft.drawLine(graphXPos + previousPixelPos, mapTopPreviousHumidity, graphXPos + pixelPos, mapTopHumidity, PURPLE);
+              previousaverageHumidityReading = averageHumidityReading;
+    totalHumidityReadings = 0;
+
+//map and draw IAQ on middle graph
+    mapMiddleIAQ = mapf(averageIAQReading, minIaq, maxIaq, graphHeight + graphMiddleYPos, graphMiddleYPos);
+    mapMiddlePreviousIAQ = mapf(previousAverageIAQReading, minIaq, maxIaq, graphHeight + graphMiddleYPos, graphMiddleYPos);
+    tft.drawLine(graphXPos + previousPixelPos, mapMiddlePreviousIAQ, graphXPos+ pixelPos, mapMiddleIAQ,ST77XX_CYAN );
+    previousAverageIAQReading = averageIAQReading;
+    totalIAQReadings = 0;
+
+//map and draw pressure on middle graph
+        mapMiddlePressure = mapf(averagePressureReading, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos);
+    mapMiddlePreviousPressure = mapf(previousAveragePressureReading, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos);
+    tft.drawLine(graphXPos + previousPixelPos, mapMiddlePreviousPressure, graphXPos+ pixelPos, mapMiddlePressure,RED);
+    previousAveragePressureReading = averagePressureReading;
+    totalPressureReadings = 0;
 
 
    //BME temp for top graph
@@ -602,12 +622,7 @@ averagePressureReading = (float) totalPressureReadings / (float) counter;
     //     tft.drawLine(graphXPos + previousPixelPos, mapDPreviousTemp, graphXPos + pixelPos, mapDTemp, ST77XX_RED);
     // dPrevAvgTemp = dAvgTemp;
   
-//map and draw humidity on top graph
-    mapTopHumidity = mapf(averageHumidityReading, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos);
-    mapTopPreviousHumidity = mapf(previousaverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos);
-    tft.drawLine(graphXPos + previousPixelPos, mapTopPreviousHumidity, graphXPos + pixelPos, mapTopHumidity, ST77XX_CYAN);
-              previousaverageHumidityReading = averageHumidityReading;
-    totalHumidityReadings = 0;
+
 
     //humidity for middle graph
     // mapMiddleHumidity = mapf(averageHumidityReading, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos);
@@ -656,11 +671,13 @@ averagePressureReading = (float) totalPressureReadings / (float) counter;
     previousMinute = currentMinute;
     counter++;
     totalTempReadings += temperature;
-    bmeTotalTempReadings += bme_temp;
-
     totalHumidityReadings += humidity;
-    bmeTotalHumidityReadings += bme_humidity;
-    totalVoc+=bme_voc;
+    totalIAQReadings += bme_IAQ;
+    totalPressureReadings +=bme_pressure;
+
+    // bmeTotalTempReadings += bme_temp;
+    // bmeTotalHumidityReadings += bme_humidity;
+    // totalVoc+=bme_voc;
 
     // Serial.print("temperature: ");
     // Serial.println(temperature);
@@ -677,11 +694,7 @@ averagePressureReading = (float) totalPressureReadings / (float) counter;
     // Serial.println(totalHumidityReadings);
   }
 
-    //---------------------------------
-      if (! bme.performReading()) {
-    Serial.println("Failed to perform reading :(");
-    return;
-  }
+
 // testing values from peripherals
 //uncomment if want serial
 // Serial.print("NTC temperature: ");
@@ -875,28 +888,28 @@ float mapf(float value, int inputMin, int inputMax, int outputMin, int outputMax
 // Helper function for bme
 void checkIaqSensorStatus(void)
 {
-  if (iaqSensor.bsecStatus != BSEC_OK) {
-    if (iaqSensor.bsecStatus < BSEC_OK) {
-      output = "BSEC error code : " + String(iaqSensor.bsecStatus);
-      Serial.println(output);
+  if (BME.bsecStatus != BSEC_OK) {
+    if (BME.bsecStatus < BSEC_OK) {
+      String output = "BSEC error code : " + String(BME.bsecStatus);
+      Serial.println(output);//TODO:combine this and the print statement?
       for (;;)//TODO:for loop runs forever
         errLeds(); /* Halt in case of failure */
     } else {
-      output = "BSEC warning code : " + String(iaqSensor.bsecStatus);
+      String output = "BSEC warning code : " + String(BME.bsecStatus);//TODO:combine this and the print statement?
       Serial.println(output);
     }
   }
 
 
-  if (iaqSensor.bme68xStatus != BME68X_OK) {
-    if (iaqSensor.bme68xStatus < BME68X_OK) {
-      output = "BME68X error code : " + String(iaqSensor.bme68xStatus);
+  if (BME.bme68xStatus != BME68X_OK) {
+    if (BME.bme68xStatus < BME68X_OK) {
+      output = "BME68X error code : " + String(bme.bme68xStatus);
       //-2 is communication failure
       Serial.println(output);
       for (;;)
         errLeds(); /* Halt in case of failure */
     } else {
-      output = "BME68X warning code : " + String(iaqSensor.bme68xStatus);
+      output = "BME68X warning code : " + String(BME.bme68xStatus);
       Serial.println(output);
     }
   }
