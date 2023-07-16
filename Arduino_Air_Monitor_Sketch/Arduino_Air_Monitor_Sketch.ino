@@ -12,8 +12,6 @@ using namespace std;
 
 #include "bsec.h"
 
-//TODO:bosch apparently has a library for the bme that can calc voc
-//should check it out
 
 //---------------------------------------------------------------------------------
 //screencode
@@ -67,10 +65,8 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 //---------------------------------------------------------------------------------
 //BME680
 //running on I2C protocol
-
-
 float bme_IAQ;
-float bme_pressure; //note: sensor measures station pressure in pa
+float bme_pressure; //note: sensor measures station pressure in pascals
 String output; //TODO:not sure if we should keep this
 
 // Helper functions declarations
@@ -145,7 +141,7 @@ bool valueError = false;
 //---------------------------------------------------------------------------------
 //time module
 //uRTCLib rtc(0x68);
-//TODO: set up for i2c
+// set up for I2C
 uRTCLib rtc;
 
 int currentMinute;
@@ -179,11 +175,7 @@ int mapMiddlePreviousPressure;
 
 
 
-//deltaTemp difference between bme and ntc
-// float dAvgTemp;
-// float dPrevAvgTemp;
-// int mapDTemp;
-// int mapDPreviousTemp;
+
 
 //TODO: do these really need to be global variables?
 int mapTopTemp;
@@ -200,25 +192,16 @@ float totalHumidityReadings;
 float averageHumidityReading;
 float previousaverageHumidityReading;
 
-// float bmeTotalHumidityReadings;
-// float bmeAverageHumidityReading;
-// float bmePreviousaverageHumidityReading;
+
 
 int mapTopHumidity;
 int mapTopPreviousHumidity;
 
-// int mapBmeMiddleHumidity;
-// int mapBmeMiddlePreviousHumidity;
+
 
 int mapMiddleHumidity;
 int mapMiddlePreviousHumidity;
 
-//VOC variables
-// float totalVoc;
-// float averageVoc;
-// float averagePreviousVoc;
-// int mapVoc;
-// int mapPreviousVoc;
 
 //---------------------------------------------------------------------------------
 
@@ -306,14 +289,6 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   }
 
 
-  //   bmePreviousaverageTempReading = bme.readTemperature();
-  // bmePreviousaverageHumidityReading = bme.readHumidity();
-
-  // dPrevAvgTemp = bmePreviousaverageTempReading-previousaverageTempReading;
-
-
-  // averagePreviousVoc = bme.gas_resistance / 1000.0;
-
 
   //display
   tft.init(240, 320);
@@ -377,20 +352,7 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
    drawDualScalePoint(24, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
    drawDualScalePoint(26, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
 
-  //draw right axis (top right humidity)
-  // tft.drawFastVLine(graphXPos + graphWidth + 3, graphTopYPos, graphHeight, ST77XX_CYAN);
-  // drawScalePoint(25, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false);
-  // drawScalePoint(30, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
-  // drawScalePoint(40, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
-  // drawScalePoint(50, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
-  // drawScalePoint(60, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
-  // drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
-  // drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false);
 
-// //delta temp scale top
-//     tft.drawFastVLine(graphXPos + graphWidth + 3, graphTopYPos, graphHeight, ST77XX_RED);
-//   drawScalePoint(4, 4, 7, graphHeight + graphTopYPos, graphTopYPos, ST77XX_RED, true, false);
-//   drawScalePoint(7, 4, 7, graphHeight + graphTopYPos, graphTopYPos, ST77XX_RED, true, false);
 
 
   //top right axis
@@ -477,8 +439,6 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
 }
 
 void loop() {
-  //delay(500);
-  //Serial.println("main loop started");
   // put your main code here, to run repeatedly:
 
   //Temp
@@ -488,10 +448,7 @@ void loop() {
   //rounds temperature to one decimal place.
   temperature = round(temperature * 10) / 10.0;
 
-  // bme_temp = bme.readTemperature();
-  // bme_humidity = bme.readHumidity();
-  // bme_voc = bme.gas_resistance / 1000.0;
-//Serial.println("bebug point: 1");
+
 
   if (BME.run()) { 
   bme_IAQ = BME.iaq;
@@ -500,7 +457,7 @@ void loop() {
        checkIaqSensorStatus();
   }
 
-//Serial.println("bebug point: 2");
+
   //Humidity
   dht.humidity().getEvent(&event);
   if (isnan(event.relative_humidity)) {
@@ -512,7 +469,7 @@ void loop() {
 
 
 
-//Serial.println("bebug point: 3");
+
 
   // Scale value to fit graph
   //https://www.youtube.com/watch?v=j0o5EGeShME
@@ -529,7 +486,7 @@ void loop() {
   rtc.refresh();
   pixelPos = ((rtc.hour() * 60) + (rtc.minute())) / 8;
   currentMinute = rtc.minute();
-//Serial.println("bebug point: 4");
+
   //moving time bar that pans left to right with time and erases the old data
   if (pixelPos != previousPixelPos) {
     //erases older lines top graph
@@ -542,7 +499,7 @@ void loop() {
         tft.drawFastVLine(graphXPos + pixelPos + 2, graphBottomYPos, graphHeight, ST77XX_WHITE);
     tft.drawRect(graphXPos + pixelPos, graphBottomYPos, 2, graphHeight + 1, ST77XX_BLACK);
 
-//Serial.println("bebug point: 5");
+
     if (pixelPos == 0) {
       //erases the white line scrub line from right of graph
       //top
@@ -560,7 +517,7 @@ void loop() {
       previousPixelPos = 0;
     }
 
-//Serial.println("bebug point: 6");
+
 
     //get the average reading
     averageTempReading = (float)totalTempReadings / (float)counter;          
@@ -569,17 +526,11 @@ averageIAQReading = (float)totalIAQReadings / (float)counter;
 averagePressureReading = (float) totalPressureReadings / (float) counter;
 
 
-//     bmeAverageTempReading = (float)bmeTotalTempReadings/ (float)counter;
-//     bmeAverageHumidityReading = (float)bmeTotalHumidityReadings/ (float)counter;
 
 
 
-// //delta temp
-//     dAvgTemp = bmeAverageTempReading-averageTempReading;
 
-//     averageVoc = (float)totalVoc / (float)counter;
 
-//Serial.println("bebug point: 7");
 
     //safty limit on  temp value
     if (averageTempReading > maxTemp) {
@@ -595,7 +546,7 @@ averagePressureReading = (float) totalPressureReadings / (float) counter;
     }
 
     //TODO:safety limit for iaq and pressure
-    //Serial.println("bebug point: 8");
+
 
 
     //get values for graphing
@@ -628,45 +579,6 @@ averagePressureReading = (float) totalPressureReadings / (float) counter;
     previousAveragePressureReading = averagePressureReading;
     totalPressureReadings = 0;
 
-//Serial.println("bebug point: 9");
-   //BME temp for top graph
-    // mapBmeTopTemp = mapf(bmeAverageTempReading, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos);
-    // mapBmeTopPreviousTemp = mapf(bmePreviousaverageTempReading, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos);
-
-//delta map
-// mapDTemp = mapf(dAvgTemp, 4, 7, graphHeight + graphTopYPos, graphTopYPos);
-// mapDPreviousTemp = mapf(dPrevAvgTemp, 4, 7, graphHeight + graphTopYPos, graphTopYPos);
-
-
-//draw bme temp graph
-    // tft.drawLine(graphXPos + previousPixelPos, mapBmeTopPreviousTemp, graphXPos + pixelPos, mapBmeTopTemp, ST77XX_CYAN);
-    // bmePreviousaverageTempReading = bmeAverageTempReading;
-    // bmeTotalTempReadings = 0;
-
-    //draw delta temp
-    //     tft.drawLine(graphXPos + previousPixelPos, mapDPreviousTemp, graphXPos + pixelPos, mapDTemp, ST77XX_RED);
-    // dPrevAvgTemp = dAvgTemp;
-  
-
-
-    //humidity for middle graph
-    // mapMiddleHumidity = mapf(averageHumidityReading, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos);
-    // mapMiddlePreviousHumidity = mapf(previousaverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos);
-
-//bme humidity for middle graph
-  // mapBmeMiddleHumidity = mapf(bmeAverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos);
-  //   mapBmeMiddlePreviousHumidity = mapf(bmePreviousaverageHumidityReading, minHumidity, maxHumidity, graphHeight + graphMiddleYPos, graphMiddleYPos);
-
-        //draw humdity graph middle
-    // tft.drawLine(graphXPos + previousPixelPos, mapMiddlePreviousHumidity, graphXPos + pixelPos, mapMiddleHumidity, PURPLE);
-    //           previousaverageHumidityReading = averageHumidityReading;
-    // totalHumidityReadings = 0;
-
-    //draw bme humidity graph middle
-      // tft.drawLine(graphXPos + previousPixelPos, mapBmeMiddlePreviousHumidity, graphXPos + pixelPos, mapBmeMiddleHumidity, ST77XX_YELLOW);
-    //     bmePreviousaverageHumidityReading = bmeAverageHumidityReading;
-    // bmeTotalHumidityReadings = 0;
-
 
 
 
@@ -682,74 +594,22 @@ averagePressureReading = (float) totalPressureReadings / (float) counter;
 
 
 
-//Serial.println("bebug point: 10");
 
 
     previousPixelPos = pixelPos;
     counter = 0;
   }
+
+
   if (currentMinute != previousMinute) {
-    // Serial.print("Time: ");
-    // Serial.print(rtc.hour());
-    // Serial.print(":");
-    // Serial.println(rtc.minute());
     previousMinute = currentMinute;
     counter++;
     totalTempReadings += temperature;
     totalHumidityReadings += humidity;
     totalIAQReadings += bme_IAQ;
     totalPressureReadings +=bme_pressure;
-
-    // bmeTotalTempReadings += bme_temp;
-    // bmeTotalHumidityReadings += bme_humidity;
-    // totalVoc+=bme_voc;
-
-    // Serial.print("temperature: ");
-    // Serial.println(temperature);
-    // Serial.print("counter: ");
-    // Serial.println(counter);
-    // Serial.print("totalTempReadings: ");
-    // Serial.println(totalTempReadings);
-
-    // Serial.print("Humidity: ");
-    // Serial.println(humidity);
-    // Serial.print("counter: ");
-    // Serial.println(counter);
-    // Serial.print("totalHumidityReadings: ");
-    // Serial.println(totalHumidityReadings);
   }
 
-
-// testing values from peripherals
-//uncomment if want serial
-// Serial.print("NTC temperature: ");
-// Serial.println(temperature);
-
-// Serial.print("DH11 Humidity: ");
-// Serial.println(humidity);
-// Serial.print("DH11 Temperature: ");
-// Serial.println(dht.readTemperature());
-
-// Serial.print("RTC DS3231 Temperature: ");
-// Serial.println(rtc.temp()  / 100);
-
-
-//   Serial.print("BME Temperature = ");
-//   Serial.print(bme.temperature);
-//   Serial.println(" *C");
-//   Serial.print("BME Pressure = ");
-//   Serial.print(bme.pressure / 100.0);
-//   Serial.println(" hPa");
-//   Serial.print("BME Humidity = ");
-//   Serial.print(bme.humidity);
-//   Serial.println(" %");
-//   Serial.print("BME Gas = ");
-//   Serial.print(bme.gas_resistance / 1000.0);
-//   Serial.println(" KOhms");
-//   Serial.print("BME Approx. Altitude = ");
-//   Serial.print(bme.readAltitude(SEALEVELPRESSURE_HPA));
-//   Serial.println(" m");
-//   Serial.println(' ');
 
 
       //---------------------------------
@@ -780,11 +640,6 @@ averagePressureReading = (float) totalPressureReadings / (float) counter;
   tft.print("Humidity:");
   tft.print(humidity);
   tft.print("%");
-
-  // //difference between bme and ntc
-  // tft.setTextColor(ST77XX_RED, ST77XX_BLACK);
-  // tft.setCursor(215,0);
-  // tft.print(bme_temp-temperature);
 
 
   //MIDDLE
@@ -837,7 +692,7 @@ averagePressureReading = (float) totalPressureReadings / (float) counter;
   // tft.print("%");
 
 
-//Serial.println("bebug point: 11");
+
   delay(1000);  //add a one second delay
 }
 
@@ -856,16 +711,7 @@ void drawScalePoint(int scalePoint, int yMin, int yMax, int yStart, int yEnd, un
       } else {
         tft.setCursor(220, y - 3);
       }
-      //TODO:delet this blocks
-      // //for pressure to convert pa to kpa
-      // if (scalePoint >1000){
-      //   //TODO:ok this doesnt work as inputs (pa pressures) exceed the size of a int. So we need to correct for this. think about it
-      //   Serial.print("init scale Point:");
-      //   Serial.print(scalePoint);
-      //   scalePoint = scalePoint/1000;
-      //   Serial.print(", since scale point >1000 scalepoint:");
-      //   Serial.println(scalePoint);
-      // }
+
       tft.print(scalePoint);
     }
 }
@@ -911,8 +757,7 @@ void drawTimeScalePoint(int timePoint, int xMin, int xMax, int xStart, int xEnd,
 
 //like the map function but accommodates floats
 float mapf(float value, int inputMin, int inputMax, int outputMin, int outputMax) {
-  //Serial.print("mapf is returning: ");
-  //Serial.println((value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin);
+
   return (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin;
 }
 
