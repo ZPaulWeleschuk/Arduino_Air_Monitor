@@ -109,9 +109,19 @@ float humidity;
 sensors_event_t event;
 
 //---------------------------------------------------------------------------------
+//PMS 7003
+
+//ug/m3
+int minPm25 = 0;
+int maxPm25 = 60;
+
+int minPm10 = 0;
+int maxPm10 = 100;
+
+//---------------------------------------------------------------------------------
 //graphcode
 // Define variables for line graph
-//TODO:move these to their respective sections
+//TODO: figure out if there is extra pixels and utalize them
 const int displayWidth = 240;   //x
 const int displayHeight = 320;  //y
 
@@ -125,6 +135,7 @@ const int graphTopYPos = 15;
 const int graphMiddleYPos = 107;
 const int graphBottomYPos = 214;
 
+//TODO:move these to their respective sections
 const int minTemp = 15;
 const int maxTemp = 26;
 
@@ -334,23 +345,23 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
 
   //bottom left axis
   //tft.drawFastVLine(graphXPos - 3, graphBottomYPos, graphHeight, BLUE);
-   drawDualScalePoint(15, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, false, true);
-   drawDualScalePoint(16, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
-   drawDualScalePoint(18, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
-   drawDualScalePoint(20, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
-   drawDualScalePoint(22, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
-   drawDualScalePoint(24, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
-   drawDualScalePoint(26, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
+   drawDualScalePoint(0, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, false, true);
+   drawDualScalePoint(10, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
+   drawDualScalePoint(20, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
+   drawDualScalePoint(30, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
+   drawDualScalePoint(40, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
+   drawDualScalePoint(50, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
+   drawDualScalePoint(60, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
 
   //test Double axis
   tft.drawFastVLine(graphXPos - 3, graphBottomYPos, graphHeight, ST77XX_CYAN);
-   drawDualScalePoint(15, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, false, false);
-   drawDualScalePoint(16, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
-   drawDualScalePoint(18, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
-   drawDualScalePoint(20, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
-   drawDualScalePoint(22, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
-   drawDualScalePoint(24, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
-   drawDualScalePoint(26, minTemp, maxTemp, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
+   drawDualScalePoint(0, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, false, false);
+   drawDualScalePoint(20, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
+   drawDualScalePoint(40, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
+   drawDualScalePoint(60, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
+   drawDualScalePoint(80, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
+   drawDualScalePoint(100, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, false, false);
+   
 
 
 
@@ -365,6 +376,8 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
   drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false);
 
+
+//TODO: figure out typical co2 ranges and build scale
   //bottom right axis
   // tft.drawFastVLine(graphXPos + graphWidth + 3, graphBottomYPos, graphHeight, RED);
   // drawScalePoint(25, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, false, false);
@@ -667,6 +680,7 @@ averagePressureReading = (float) totalPressureReadings / (float) counter;
   tft.print("");
 
   //BOTTOM
+  //TODO:test spacing for pm2.5 pm10 and co2
   // tft.setTextSize(1);
   // tft.setTextColor(BLUE, ST77XX_BLACK);
   // tft.setCursor(5, 190);
