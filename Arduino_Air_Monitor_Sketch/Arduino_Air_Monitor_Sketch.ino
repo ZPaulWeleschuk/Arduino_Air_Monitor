@@ -221,8 +221,10 @@ int mapMiddlePreviousHumidity;
 
 void setup() {
   Serial.begin(115200);
-  dht.begin();
   delay(3000);  // wait for console opening
+  Serial.println("Setup Begin");
+
+  dht.begin();
 
   URTCLIB_WIRE.begin();
 rtc.set_rtc_address(0x68);
@@ -303,7 +305,7 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
 
   //display
   tft.init(240, 320);
-  Serial.println(F("Initialized"));
+
 
   //make the display show the proper colors
   tft.invertDisplay(0);
@@ -448,7 +450,7 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   drawTimeScalePoint(23, 0, 24, graphXPos, graphXPos + graphWidth, graphBottomYPos, ST77XX_WHITE, false, false);
   drawTimeScalePoint(24, 0, 24, graphXPos, graphXPos + graphWidth, graphBottomYPos, ST77XX_WHITE, true, false);
 
-  Serial.println("starting monitoring");
+  Serial.println("Setup Complete");
 }
 
 void loop() {
@@ -646,7 +648,7 @@ averagePressureReading = (float) totalPressureReadings / (float) counter;
   tft.print(rtc.minute());
   tft.print(":");
   tft.print(rtc.second());
-  tft.println("   ");
+  tft.println("   ");//TODO:???i cant remember what this is for
 
   tft.setTextColor(ST77XX_CYAN, ST77XX_BLACK);
   tft.setCursor(145, 0);
@@ -671,42 +673,42 @@ averagePressureReading = (float) totalPressureReadings / (float) counter;
   tft.print(rtc.minute());
   tft.print(":");
   tft.print(rtc.second());
-  tft.println("   ");
+  tft.println("   ");//TODO:??
 
   tft.setTextColor(PURPLE, ST77XX_BLACK);
   tft.setCursor(145, 180);
   tft.print("Pressure:");
   tft.print(bme_pressure);
-  tft.print("");
+  tft.print("");//TODO:
 
   //BOTTOM
   //TODO:test spacing for pm2.5 pm10 and co2
-  // tft.setTextSize(1);
-  // tft.setTextColor(BLUE, ST77XX_BLACK);
-  // tft.setCursor(5, 190);
+  tft.setTextSize(1);
+  tft.setTextColor(BLUE, ST77XX_BLACK);
+  tft.setCursor(5, 190);
 
-  // tft.print("VOC:");
-  // tft.print(bme_voc);
+  tft.print("PM2.5:");
+  tft.print("10");//TODO: testing example
+  //tft.print("");
+
+
+  tft.setTextColor(ST77XX_CYAN, ST77XX_BLACK);
+  tft.setCursor(75, 190);
+
+  tft.print("PM10:");
+  tft.print("10");
   // //tft.print("");
 
 
-  // tft.setTextColor(ST77XX_CYAN, ST77XX_BLACK);
-  // tft.setCursor(75, 190);
 
-  // tft.print("Pressure:");
-  // tft.print(bme.pressure / 100.0);
-  // //tft.print("");
-
-
-
-  // tft.setTextColor(RED, ST77XX_BLACK);
-  // tft.setCursor(145, 190);
-  // tft.print(":");
-  // tft.print(humidity);
-  // tft.print("%");
+  tft.setTextColor(RED, ST77XX_BLACK);
+  tft.setCursor(145, 190);
+  tft.print("CO2:");
+  tft.print("200");
+  
 
 
-
+  //Serial.println("Loop Complete");
   delay(1000);  //add a one second delay
 }
 
