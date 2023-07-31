@@ -9,7 +9,7 @@ using namespace std;
 #include <DHT.h>
 #include <DHT_U.h>
 #include <Adafruit_Sensor.h>
-
+#include "PMS.h"
 #include "bsec.h"
 
 
@@ -85,6 +85,9 @@ const int minPressure =86;//kpa
 const int  maxPressure = 91;//kpa
 
 
+
+
+
 //---------------------------------------------------------------------------------
 //theremistor code
 // pins for ntc thermistor
@@ -110,6 +113,9 @@ sensors_event_t event;
 
 //---------------------------------------------------------------------------------
 //PMS 7003
+//particulate matter sensor
+PMS pms(Serial1);
+PMS::DATA data;
 
 //ug/m3
 int minPm25 = 0;
@@ -220,7 +226,8 @@ int mapMiddlePreviousHumidity;
 
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(115200);   //for serial monitor
+   Serial1.begin(9600);  //for PMS
   delay(3000);  // wait for console opening
   Serial.println("Setup Begin");
 
@@ -237,6 +244,8 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   // set day of week (1=Sunday, 7=Saturday)
 
 
+//PMS7003
+//TODO:set inital readings
 
   //BME680
  pinMode(LED_BUILTIN, OUTPUT); //onboard led
