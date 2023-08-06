@@ -116,6 +116,10 @@ sensors_event_t event;
 //particulate matter sensor
 PMS pms(Serial1);
 PMS::DATA data;
+//note data is returned as unsigned 16 bit int
+//TODO: use the proper data type
+int pm25;
+int pm10;
 
 //ug/m3
 int minPm25 = 0;
@@ -190,6 +194,17 @@ float previousAveragePressureReading;
 int mapMiddlePressure;
 int mapMiddlePreviousPressure;
 
+float totalPM25Readings;//TODO:double check is we double cap "PM" or "Pm", anyways keep it consistent
+float averagePM25Reading;
+float previousAveragePM25Reading;
+int mapBottomPM25;
+int mapBottomPreviousPM25;
+
+float totalPM10Readings;
+float averagePM10Reading;
+float previousAveragePM10Reading;
+int mapBottomPM10;
+int mapBottomPreviousPM10;
 
 
 
@@ -245,7 +260,12 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
 
 
 //PMS7003
-//TODO:set inital readings
+if (pms.read(data)){
+  previousAveragePM25Reading = data.PM_AE_UG_2_5;
+  previousAveragePM10Reading = data.PM_AE_UG_10_0;
+}else{
+  Serial.println("ERROR: pms not reading");
+}
 
   //BME680
  pinMode(LED_BUILTIN, OUTPUT); //onboard led
@@ -287,13 +307,16 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
 
   pixelPos = ((rtc.hour() * 60) + (rtc.minute())) / 8;
   previousPixelPos = ((rtc.hour() * 60) + (rtc.minute())) / 8;
+  //TODO: could we just initialize these vairiables at zero;
   counter = 0;
   totalTempReadings = 0;
   totalHumidityReadings = 0;
   totalIAQReadings = 0;
   totalPressureReadings = 0;
+  totalPM25Readings = 0;
+  totalPM10Readings = 0;
 
-
+//temperature
   R2 = R1 * (1023.0 / (float)(analogRead(ntcInput)) - 1.0);
   logR2 = log(R2);
   temperature = ((1.0 / (c1 + c2 * logR2 + c3 * logR2 * logR2 * logR2)) - 273.15);
@@ -356,7 +379,7 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
 
   //bottom left axis
   //tft.drawFastVLine(graphXPos - 3, graphBottomYPos, graphHeight, BLUE);
-   drawDualScalePoint(0, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, false, true);
+   drawDualScalePoint(0, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
    drawDualScalePoint(10, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
    drawDualScalePoint(20, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
    drawDualScalePoint(30, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
@@ -366,12 +389,12 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
 
   //test Double axis
   tft.drawFastVLine(graphXPos - 3, graphBottomYPos, graphHeight, ST77XX_CYAN);
-   drawDualScalePoint(0, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, false, false);
+   drawDualScalePoint(0, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
    drawDualScalePoint(20, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
    drawDualScalePoint(40, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
    drawDualScalePoint(60, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
    drawDualScalePoint(80, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
-   drawDualScalePoint(100, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, false, false);
+   drawDualScalePoint(100, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
    
 
 
@@ -473,13 +496,22 @@ void loop() {
   temperature = round(temperature * 10) / 10.0;
 
 
-
+//BME
   if (BME.run()) { 
   bme_IAQ = BME.iaq;
   bme_pressure = BME.pressure/1000;
   }else {
        checkIaqSensorStatus();
   }
+
+//PMS
+//TODO:check wiring. it was working fine but then i think i bumped the bread board and now its not reading. but it was working
+// if (pms.read(data)){
+//   pm25 = data.PM_AE_UG_2_5;
+//   pm10 = data.PM_AE_UG_10_0;
+// }else {
+//   Serial.println("error: unable to read pms");
+// }
 
 
   //Humidity
@@ -548,8 +580,8 @@ void loop() {
     averageHumidityReading = (float)totalHumidityReadings / (float)counter;  
 averageIAQReading = (float)totalIAQReadings / (float)counter;
 averagePressureReading = (float) totalPressureReadings / (float) counter;
-
-
+averagePM25Reading = (float) totalPM25Readings / (float) counter;
+averagePM10Reading = (float) totalPM10Readings / (float) counter;
 
 
 
@@ -569,7 +601,7 @@ averagePressureReading = (float) totalPressureReadings / (float) counter;
       averageHumidityReading = minHumidity;
     }
 
-    //TODO:safety limit for iaq and pressure
+    //TODO:safety limit for iaq and pressure, pm
 
 
 
@@ -603,8 +635,19 @@ averagePressureReading = (float) totalPressureReadings / (float) counter;
     previousAveragePressureReading = averagePressureReading;
     totalPressureReadings = 0;
 
+//map and draw pm 2.5 on bottom graph
+mapBottomPM25 = mapf(averagePM25Reading, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos);
+mapBottomPreviousPM25 = mapf(previousAveragePM25Reading, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos);
+tft.drawLine(graphXPos + previousPixelPos, mapBottomPreviousPM25, graphXPos + pixelPos, mapBottomPM25, BLUE);
+previousAveragePM25Reading = averagePM25Reading;
+totalPM25Readings = 0;
 
-
+//map and draw pm 10 on bottom graph
+mapBottomPM10 = mapf(averagePM10Reading, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos);
+mapBottomPreviousPM10 = mapf(previousAveragePM10Reading, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos);
+tft.drawLine(graphXPos + previousPixelPos, mapBottomPreviousPM10, graphXPos + pixelPos, mapBottomPM10, BLUE);
+previousAveragePM10Reading = averagePM10Reading;
+totalPM10Readings = 0;
 
 
 //bottom graph
@@ -624,7 +667,7 @@ averagePressureReading = (float) totalPressureReadings / (float) counter;
     counter = 0;
   }
 
-
+//add to value if its not time to draw
   if (currentMinute != previousMinute) {
     previousMinute = currentMinute;
     counter++;
@@ -632,6 +675,8 @@ averagePressureReading = (float) totalPressureReadings / (float) counter;
     totalHumidityReadings += humidity;
     totalIAQReadings += bme_IAQ;
     totalPressureReadings +=bme_pressure;
+    totalPM25Readings += pm25;
+    totalPM10Readings += pm10;
   }
 
 
@@ -697,16 +742,21 @@ averagePressureReading = (float) totalPressureReadings / (float) counter;
   tft.setCursor(5, 190);
 
   tft.print("PM2.5:");
-  tft.print("10");//TODO: testing example
-  //tft.print("");
+  tft.print(pm25);
+  //TODO:testing remove
+  //   Serial.print("PM 2.5 (ug/m3): ");
+  // Serial.println(pm25);
+
 
 
   tft.setTextColor(ST77XX_CYAN, ST77XX_BLACK);
   tft.setCursor(75, 190);
 
   tft.print("PM10:");
-  tft.print("10");
-  // //tft.print("");
+  tft.print(pm10);
+      // Serial.print("PM 10.0  (ug/m3): ");
+      //   Serial.println(pm10);
+
 
 
 
