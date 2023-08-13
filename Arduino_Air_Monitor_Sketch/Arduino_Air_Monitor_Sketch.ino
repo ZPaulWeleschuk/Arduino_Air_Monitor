@@ -129,6 +129,14 @@ int minPm10 = 0;
 int maxPm10 = 100;
 
 //---------------------------------------------------------------------------------
+//SenseAir S8
+
+//int co2;
+
+//int minCo2 = ;
+//int maxCo2 = ;
+
+//---------------------------------------------------------------------------------
 //graphcode
 // Define variables for line graph
 //TODO: figure out if there is extra pixels and utalize them
