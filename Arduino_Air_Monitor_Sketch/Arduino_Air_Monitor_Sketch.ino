@@ -506,12 +506,12 @@ void loop() {
 
 //PMS
 //TODO:check wiring. it was working fine but then i think i bumped the bread board and now its not reading. but it was working
-// if (pms.read(data)){
-//   pm25 = data.PM_AE_UG_2_5;
-//   pm10 = data.PM_AE_UG_10_0;
-// }else {
-//   Serial.println("error: unable to read pms");
-// }
+if (pms.read(data)){
+  pm25 = data.PM_AE_UG_2_5;
+  pm10 = data.PM_AE_UG_10_0;
+}else {
+  //Serial.println("error: unable to read pms");
+}
 
 
   //Humidity
