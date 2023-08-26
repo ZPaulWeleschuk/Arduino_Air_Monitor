@@ -130,11 +130,14 @@ int maxPm10 = 100;
 
 //---------------------------------------------------------------------------------
 //SenseAir S8
+#define SenseAir_S8 // SenseAir S8
 
-//int co2;
+int co2;
 
-//int minCo2 = ;
-//int maxCo2 = ;
+int minCo2 = 400;//min co2 in atmosphere
+int maxCo2 = 2000;
+
+
 
 //---------------------------------------------------------------------------------
 //graphcode
