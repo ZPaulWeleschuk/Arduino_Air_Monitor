@@ -31,6 +31,24 @@ prototyping board
 
 
 
+### DHT22 Humidity Sensor
+|Pinout|Connection|
+|---------:|:--------|
+|Data|DP 8|
+|VCC|5V|
+|GND|GND|
+
+
+### TFT Display
+|Pins |Voltage|
+|------:|:---------|
+|VCC|5V|
+|GND|GND|
+|CS| DP 53, 3.3V TTL|
+|RESET|DP 49, 3.3V TTL|
+|DC|DP 48, 3.3V TTL|
+|MOSI| DP 51, 3.3V TTL|
+|SCK|DP 52, 3.3V TTL|
+|LED| 5V|
 
 TODO: make tables for pin outs of each sensor
-
