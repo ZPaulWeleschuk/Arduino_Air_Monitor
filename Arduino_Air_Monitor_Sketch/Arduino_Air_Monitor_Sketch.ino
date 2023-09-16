@@ -137,7 +137,34 @@ int co2;
 int minCo2 = 400;//min co2 in atmosphere
 int maxCo2 = 2000;
 
+//TODO:
+// const byte PIN_TX = 6;  // define TX pin to Sensor
+// const byte PIN_RX = 7;  // define RX pin to Sensor
+// const byte PIN_CLK = 9;
+// const byte PIN_DIO = 8;
+// const byte MB_PKT_7 = 7;   //MODBUS Packet Size
+// const byte MB_PKT_8 = 8;   //MODBUS Packet Size
+// const byte MB_PKT_17 = 17; // MODBUS Packet Size
 
+// // SenseAir S8 MODBUS commands
+// const byte cmdReSA[MB_PKT_8] = {0xFE, 0X04, 0X00, 0X03, 0X00, 0X01, 0XD5, 0XC5}; // SenseAir Read CO2
+// const byte cmdOFFs[MB_PKT_8] = {0xFE, 0x06, 0x00, 0x1F, 0x00, 0x00, 0xAC, 0x03}; // SenseAir Close ABC
+// const byte cmdCal1[MB_PKT_8] = {0xFE, 0x06, 0x00, 0x00, 0x00, 0x00, 0x9D, 0xC5}; // SenseAir Calibration 1
+// const byte cmdCal2[MB_PKT_8] = {0xFE, 0x06, 0x00, 0x01, 0x7C, 0x06, 0x6C, 0xC7}; // SenseAir Calibration 2
+// const byte cmdCal3[MB_PKT_8] = {0xFE, 0x03, 0x00, 0x00, 0x00, 0x01, 0x90, 0x05}; // SenseAir Calibration 3
+// const byte cmdCalR[MB_PKT_7] = {0xFE, 0x03, 0x02, 0x00, 0x20, 0xAD, 0x88};       // SenseAir Calibration Response
+// static byte response[MB_PKT_8] = {0};
+// byte ConnRetry = 0;
+// int CO2 = 0;
+// int CO2value;
+// unsigned int CO2temp = 0;
+// unsigned int crc_cmd;
+// unsigned int delayIN = 0;
+// unsigned long StartPress_ms = 0;
+// float CO2cor;
+// float hpa;
+// SevenSegmentExtended display(PIN_CLK, PIN_DIO);
+// SoftwareSerial co2sensor(PIN_RX, PIN_TX);
 
 //---------------------------------------------------------------------------------
 //graphcode
@@ -277,6 +304,10 @@ if (pms.read(data)){
 }else{
   Serial.println("ERROR: pms not reading");
 }
+
+//Sensair S8
+
+
 
   //BME680
  pinMode(LED_BUILTIN, OUTPUT); //onboard led
