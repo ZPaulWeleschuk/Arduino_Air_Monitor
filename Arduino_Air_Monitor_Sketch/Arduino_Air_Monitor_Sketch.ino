@@ -69,7 +69,9 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 //BME680
 //running on I2C protocol
 float bme_IAQ;
-float bme_pressure; //note: sensor measures station pressure in pascals
+float bme_pressure; //note: sensor measures station pressure in pascals.
+float offset; //offset has been calculated by taking the difference in the station pressure reading from
+//the BME680 and the barometric pressure from the nearest METAR weather monitoring station
 String output; //TODO:not sure if we should keep this
 
 // Helper functions declarations
@@ -134,23 +136,27 @@ int maxPm10 = 100;
 //---------------------------------------------------------------------------------
 //SenseAir S8
 //alot of the code for the SenseAir S8 was pulled from Daniel Bernal LibreCO2 project
-#define SenseAir_S8 // SenseAir S8
-
-int co2;
-
-int minCo2 = 400;//min co2 in atmosphere
-int maxCo2 = 2000;
-
 const byte PIN_TX = 6;  // define TX pin to Sensor
 const byte PIN_RX = 7;  // define RX pin to Sensor
+
 const byte MB_PKT_7 = 7;   //MODBUS Packet Size
 const byte MB_PKT_8 = 8;   //MODBUS Packet Size
 
 // SenseAir S8 MODBUS commands
 const byte cmdReSA[MB_PKT_8] = {0xFE, 0X04, 0X00, 0X03, 0X00, 0X01, 0XD5, 0XC5}; // SenseAir Read CO2
-const byte cmdOFFs[MB_PKT_8] = {0xFE, 0x06, 0x00, 0x1F, 0x00, 0x00, 0xAC, 0x03}; // SenseAir Close 
+const byte cmdOFFs[MB_PKT_8] = {0xFE, 0x06, 0x00, 0x1F, 0x00, 0x00, 0xAC, 0x03}; // SenseAir Close ABC
 static byte response[MB_PKT_8] = {0};
 
+byte VALalti = 21;//TODO:calgary is 1045m elevation, as 1045/50 = 20.9
+//we might not even need this if we pull hpa form the bme sensor
+byte ConnRetry = 0;
+int CO2 = 0;
+int CO2value;
+unsigned int crc_cmd;
+float CO2cor;
+float hpa;
+
+SoftwareSerial co2sensor(PIN_RX, PIN_TX);
 //TODO: I need to determine weather to use  station pressure, barometric pressure, or just altitude.
 
 
