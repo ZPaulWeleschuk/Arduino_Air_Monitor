@@ -136,8 +136,8 @@ int maxPm10 = 100;
 //---------------------------------------------------------------------------------
 //SenseAir S8
 //alot of the code for the SenseAir S8 was pulled from Daniel Bernal LibreCO2 project
-const byte PIN_TX = 6;  // define TX pin to Sensor
-const byte PIN_RX = 7;  // define RX pin to Sensor
+const byte PIN_TX = 16;  // define TX pin to Sensor
+const byte PIN_RX = 17;  // define RX pin to Sensor
 
 const byte MB_PKT_7 = 7;   //MODBUS Packet Size
 const byte MB_PKT_8 = 8;   //MODBUS Packet Size
@@ -156,8 +156,16 @@ unsigned int crc_cmd;
 float CO2cor;
 float hpa;
 
+uint8_t lastS8Reading =0;
+
+int minCO2 = 400;
+int maxCO2 = 2000;
+
 SoftwareSerial co2sensor(PIN_RX, PIN_TX);
 //TODO: I need to determine weather to use  station pressure, barometric pressure, or just altitude.
+
+//TODO:I need to create some sort of last time a reading was took variable from the RTC so I can determine if at least 4
+//seconds has occured since the last reading so that I dont have to use delay(4000) which will interupt the entire program
 
 
 //---------------------------------------------------------------------------------
@@ -238,10 +246,15 @@ float previousAveragePM10Reading;
 int mapBottomPM10;
 int mapBottomPreviousPM10;
 
-
+float totalCO2Readings;
+float averageCO2Reading;
+float previousAverageCO2Reading;
+int mapBottomCO2;
+int mapBottomPreviousCO2;
 
 
 //TODO: do these really need to be global variables?
+//TODO:clean this up
 int mapTopTemp;
 int mapTopPreviousTemp;
 
@@ -274,11 +287,13 @@ int mapMiddlePreviousHumidity;
 
 void setup() {
   Serial.begin(115200);   //for serial monitor
-   Serial1.begin(9600);  //for PMS
-  delay(3000);  // wait for console opening
+  Serial1.begin(9600);  //for PMS //TODO:try software serial for this sensor aswell
+  co2sensor.begin(9600); // S8 runs at 9600 baud 
+  delay(4000);  // wait for console opening
   Serial.println("Setup Begin");
 
   dht.begin();
+  CO2iniSenseAir();
 
   URTCLIB_WIRE.begin();
 rtc.set_rtc_address(0x68);
@@ -290,6 +305,31 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   // rtc.set(second, minute, hour, dayOfWeek, dayOfMonth, month, year)
   // set day of week (1=Sunday, 7=Saturday)
 
+//Sensair S8
+//sensor need 30 to heat up to operating temp
+//TODO:we will just delay for now but will have to draw some graphics 
+  Serial.print(F("Preheat: "));
+  for (int i = 30; i > -1; i--){ // Preheat from 0 to 30 or to 180
+    delay(1000);
+    Serial.println(i);
+    delay(1000);
+    i--;
+  }
+  Serial.print(F("Start measurements compensated by Altitude: "));
+  Serial.print(VALalti * 50);
+  Serial.println(" m");
+  delay(5000);
+
+  CO2 = 0;
+  CO2value = co2SenseAir();
+    hPaCalculation();
+    CO2cor = float(CO2value) + (0.016 * ((1013 - float(hpa)) / 10) * (float(CO2value) - 400)); // Increment of 1.6% for every hPa of difference at sea level
+    previousAverageCO2Reading = round(CO2cor);
+  lastS8Reading = rtc.second();
+  //TODO:ok so th plan hear is to condence the above code to a single line. we will also need to get perssure form the bme
+  //previousAverageCO2Reading = round(float(CO2value) + (0.016 * ((1013 - float(hpa)) / 10) * (float(CO2value) - 400)));
+ 
+
 
 //PMS7003
 if (pms.read(data)){
@@ -298,9 +338,6 @@ if (pms.read(data)){
 }else{
   Serial.println("ERROR: pms not reading");
 }
-
-//Sensair S8
-
 
 
   //BME680
@@ -351,6 +388,7 @@ if (pms.read(data)){
   totalPressureReadings = 0;
   totalPM25Readings = 0;
   totalPM10Readings = 0;
+  totalCO2Readings = 0;
 
 //temperature
   R2 = R1 * (1023.0 / (float)(analogRead(ntcInput)) - 1.0);
@@ -549,6 +587,15 @@ if (pms.read(data)){
   //Serial.println("error: unable to read pms");
 }
 
+//S8
+if ( (rtc.second() > 4) && (abs(rtc.second() - lastS8Reading )> 4)){
+  //S8 can only take a reading once every 4 seconds
+CO2value = co2SenseAir();
+    hPaCalculation();
+    CO2cor = float(CO2value) + (0.016 * ((1013 - float(hpa)) / 10) * (float(CO2value) - 400)); // Increment of 1.6% for every hPa of difference at sea level
+    previousAverageCO2Reading = round(CO2cor);
+  lastS8Reading = rtc.second();
+}
 
   //Humidity
   dht.humidity().getEvent(&event);
@@ -612,12 +659,13 @@ if (pms.read(data)){
 
 
     //get the average reading
-    averageTempReading = (float)totalTempReadings / (float)counter;          
-    averageHumidityReading = (float)totalHumidityReadings / (float)counter;  
+averageTempReading = (float)totalTempReadings / (float)counter;          
+averageHumidityReading = (float)totalHumidityReadings / (float)counter;  
 averageIAQReading = (float)totalIAQReadings / (float)counter;
 averagePressureReading = (float) totalPressureReadings / (float) counter;
 averagePM25Reading = (float) totalPM25Readings / (float) counter;
 averagePM10Reading = (float) totalPM10Readings / (float) counter;
+averageCO2Reading = (float) totalCO2Readings / (float) counter;
 
 
 
@@ -637,7 +685,7 @@ averagePM10Reading = (float) totalPM10Readings / (float) counter;
       averageHumidityReading = minHumidity;
     }
 
-    //TODO:safety limit for iaq and pressure, pm
+    //TODO:safety limit for iaq and pressure, pm, s8
 
 
 
@@ -685,6 +733,12 @@ tft.drawLine(graphXPos + previousPixelPos, mapBottomPreviousPM10, graphXPos + pi
 previousAveragePM10Reading = averagePM10Reading;
 totalPM10Readings = 0;
 
+mapBottomCO2 = mapf(averageCO2Reading, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos);
+mapBottomPreviousCO2 = mapf(previousAverageCO2Reading, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos);
+tft.drawLine(graphXPos + previousPixelPos, mapBottomPreviousCO2, graphXPos + pixelPos, mapBottomCO2, ST77XX_YELLOW);
+previousAverageCO2Reading = averageCO2Reading;
+totalCO2Readings = 0;
+
 
 //bottom graph
 //voc
@@ -713,6 +767,7 @@ totalPM10Readings = 0;
     totalPressureReadings +=bme_pressure;
     totalPM25Readings += pm25;
     totalPM10Readings += pm10;
+    totalCO2Readings += CO2cor;
   }
 
 
@@ -799,7 +854,9 @@ totalPM10Readings = 0;
   tft.setTextColor(RED, ST77XX_BLACK);
   tft.setCursor(145, 190);
   tft.print("CO2:");
-  tft.print("200");
+  tft.print(CO2cor);
+  Serial.print("CO2:");
+  Serial.println(CO2cor);
   
 
 
@@ -914,3 +971,115 @@ void errLeds(void)
   delay(1000);
 }
 
+
+//Routine Bad connection for S8
+void BadConn()
+{
+  Serial.println("Air sensor not detected. Please check wiring... Try# " + String(ConnRetry));
+  delay(2500);
+  ConnRetry++;
+}
+
+void Done()
+{
+  Serial.println(F("done"));
+}
+
+void Failed()
+{
+  Serial.println(F("failed"));
+}
+
+//Done or failed revision routine for S8
+void CheckResponse(uint8_t *a, uint8_t *b, uint8_t len_array_cmp)
+{
+  bool check_match = false;
+  for (int n = 0; n < len_array_cmp; n++)
+  {
+    if (a[n] != b[n])
+    {
+      check_match = false;
+      break;
+    }
+    else
+      check_match = true;
+  }
+
+  if (check_match)
+  {
+    Done();
+  }
+  else
+  {
+    Failed();
+  }
+}
+
+
+// Calculate of Atmospheric pressure for S8
+void hPaCalculation()
+{
+  //hpa = 1013 - 5.9 * float(VALalti) + 0.011825 * float(VALalti) * float(VALalti); // Cuadratic regresion formula obtained PA (hpa) from high above the sea
+  hpa = 1014.7;//we can pull kpa from BME so no need to calc. 
+  //TODO:typically reading 1050ish units of co2 in office. need to take outside and see what reading is, should be about 412ppm
+  //or why dont we define it as this?. . . //TODO://TODO:
+  Serial.print(F("Atmospheric pressure calculated by the sea level inserted (hPa): "));
+  Serial.println(hpa);
+}
+
+// SenseAir S8 routines
+
+// Initialice SenseAir S8
+void CO2iniSenseAir()
+{
+  //Deactivate Automatic Self-Calibration
+  co2sensor.write(cmdOFFs, MB_PKT_8);
+  co2sensor.readBytes(response, MB_PKT_8);
+  Serial.print(F("Deactivate Automatic Self-Calibration SenseAir S8: "));
+  CheckResponse(cmdOFFs, response, MB_PKT_8);
+  delay(2000);
+
+  while (co2SenseAir() == 0 && (ConnRetry < 5))
+  {
+    BadConn();
+  }
+  Serial.println(F(" Air sensor detected AirSense S8 Modbus"));
+  Serial.println(F("SenseAir read OK"));
+  delay(4000);
+}
+
+// CO2 lecture SenseAir S8
+int co2SenseAir()
+{
+  static byte responseSA[MB_PKT_7] = {0};
+  memset(responseSA, 0, MB_PKT_7);
+  co2sensor.write(cmdReSA, MB_PKT_8);
+  co2sensor.readBytes(responseSA, MB_PKT_7);
+  CO2 = (256 * responseSA[3]) + responseSA[4];
+
+
+
+  if (CO2 != 0)
+  {
+    crc_cmd = crcx::crc16(responseSA, 5);
+    if (responseSA[5] == lowByte(crc_cmd) && responseSA[6] == highByte(crc_cmd))
+    {
+      Serial.print("OK");
+      return CO2;
+    }
+    else
+    {
+      while (co2sensor.available() > 0)
+        char t = co2sensor.read(); // Clear serial input buffer;
+      Serial.println(F("FAIL"));
+      return 0;
+    }
+  }
+  else
+  {
+
+    Serial.println("FAIL");
+
+    return 0;
+  }
+}
