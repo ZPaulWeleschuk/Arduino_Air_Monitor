@@ -11,7 +11,7 @@ using namespace std;
 #include <Adafruit_Sensor.h>
 #include "PMS.h"
 #include "bsec.h"
- #include <SoftwareSerial.h>
+ //#include <SoftwareSerial.h>
  #include <CRCx.h> //https://github.com/hideakitai/CRCx
 
 
@@ -136,8 +136,11 @@ int maxPm10 = 100;
 //---------------------------------------------------------------------------------
 //SenseAir S8
 //alot of the code for the SenseAir S8 was pulled from Daniel Bernal LibreCO2 project
-const byte PIN_TX = 16;  // define TX pin to Sensor
-const byte PIN_RX = 17;  // define RX pin to Sensor
+// const byte PIN_TX = 16;//16;  // define TX pin to Sensor
+// const byte PIN_RX = 17;//17;  // define RX pin to Sensor
+// SoftwareSerial co2sensor(PIN_RX, PIN_TX);
+
+#define co2sensor Serial2
 
 const byte MB_PKT_7 = 7;   //MODBUS Packet Size
 const byte MB_PKT_8 = 8;   //MODBUS Packet Size
@@ -161,7 +164,8 @@ uint8_t lastS8Reading =0;
 int minCO2 = 400;
 int maxCO2 = 2000;
 
-SoftwareSerial co2sensor(PIN_RX, PIN_TX);
+
+
 //TODO: I need to determine weather to use  station pressure, barometric pressure, or just altitude.
 
 //TODO:I need to create some sort of last time a reading was took variable from the RTC so I can determine if at least 4
@@ -288,7 +292,8 @@ int mapMiddlePreviousHumidity;
 void setup() {
   Serial.begin(115200);   //for serial monitor
   Serial1.begin(9600);  //for PMS //TODO:try software serial for this sensor aswell
-  co2sensor.begin(9600); // S8 runs at 9600 baud 
+  //co2sensor.begin(9600); // S8 runs at 9600 baud 
+  Serial2.begin(9600);
   delay(4000);  // wait for console opening
   Serial.println("Setup Begin");
 
@@ -1033,8 +1038,10 @@ void hPaCalculation()
 void CO2iniSenseAir()
 {
   //Deactivate Automatic Self-Calibration
-  co2sensor.write(cmdOFFs, MB_PKT_8);
-  co2sensor.readBytes(response, MB_PKT_8);
+  //co2sensor.write(cmdOFFs, MB_PKT_8);
+  //co2sensor.readBytes(response, MB_PKT_8);
+    Serial2.write(cmdOFFs, MB_PKT_8);
+  Serial2.readBytes(response, MB_PKT_8);
   Serial.print(F("Deactivate Automatic Self-Calibration SenseAir S8: "));
   CheckResponse(cmdOFFs, response, MB_PKT_8);
   delay(2000);
@@ -1053,8 +1060,10 @@ int co2SenseAir()
 {
   static byte responseSA[MB_PKT_7] = {0};
   memset(responseSA, 0, MB_PKT_7);
-  co2sensor.write(cmdReSA, MB_PKT_8);
-  co2sensor.readBytes(responseSA, MB_PKT_7);
+  //co2sensor.write(cmdReSA, MB_PKT_8);
+  //co2sensor.readBytes(responseSA, MB_PKT_7);
+    Serial2.write(cmdReSA, MB_PKT_8);
+  Serial2.readBytes(responseSA, MB_PKT_7);
   CO2 = (256 * responseSA[3]) + responseSA[4];
 
 
