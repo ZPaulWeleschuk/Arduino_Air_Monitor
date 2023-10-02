@@ -490,17 +490,17 @@ if (pms.read(data)){
   drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false);
 
 
-//TODO: figure out typical co2 ranges and build scale
   //bottom right axis
   // tft.drawFastVLine(graphXPos + graphWidth + 3, graphBottomYPos, graphHeight, RED);
-  // drawScalePoint(25, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, false, false);
-  // drawScalePoint(100, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
-  //   drawScalePoint(175, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
-  // drawScalePoint(250, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
-  // drawScalePoint(325, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
-  // drawScalePoint(400, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
-  // drawScalePoint(475, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
-  // drawScalePoint(500, minVoc, maxVoc, graphHeight + graphBottomYPos, graphBottomYPos, RED, false, false);
+   drawScalePoint(400, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, RED, false, false);
+  drawScalePoint(600, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
+    drawScalePoint(800, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
+  drawScalePoint(1000, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
+  drawScalePoint(1200, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
+  drawScalePoint(1400, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
+  drawScalePoint(1600, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
+  drawScalePoint(1800, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
+    drawScalePoint(2000, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
 
 
   //draw time axis
