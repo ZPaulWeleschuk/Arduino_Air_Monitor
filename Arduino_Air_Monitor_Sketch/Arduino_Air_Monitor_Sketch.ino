@@ -310,6 +310,22 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   // rtc.set(second, minute, hour, dayOfWeek, dayOfMonth, month, year)
   // set day of week (1=Sunday, 7=Saturday)
 
+
+
+    //display
+  tft.init(240, 320);
+  //make the display show the proper colors
+  tft.invertDisplay(0);
+  // Clear screen and draw graph axes
+  tft.fillScreen(ST77XX_BLACK);
+  tft.setTextSize(2);
+  tft.setTextColor(ST77XX_WHITE, ST77XX_BLACK);
+  tft.setCursor(5, 0);
+  tft.print("initializing");
+
+
+
+
 //Sensair S8
 //sensor need 30 to heat up to operating temp
 //TODO:we will just delay for now but will have to draw some graphics 
@@ -318,6 +334,10 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
     delay(1000);
     Serial.println(i);
     delay(1000);
+      tft.setCursor(5, 25);
+  tft.print("Start up in:");
+    tft.print(i);
+    tft.print("  ");
     i--;
   }
   Serial.print(F("Start measurements compensated by Altitude: "));
@@ -414,16 +434,18 @@ if (pms.read(data)){
 
 
 
-  //display
-  tft.init(240, 320);
+  // //display
+  // tft.init(240, 320);
 
 
-  //make the display show the proper colors
-  tft.invertDisplay(0);
+  // //make the display show the proper colors
+  // tft.invertDisplay(0);
 
-  // Clear screen and draw graph axes
-  tft.fillScreen(ST77XX_BLACK);
+  // // Clear screen and draw graph axes
+  // tft.fillScreen(ST77XX_BLACK);
   //-----------------------
+    tft.setTextSize(1);
+    tft.fillScreen(ST77XX_BLACK);
   //draw temp axis (top left axis)
   tft.drawFastVLine(graphXPos - 3, graphTopYPos, graphHeight, ST77XX_GREEN);
   drawScalePoint(15, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, false, true);
