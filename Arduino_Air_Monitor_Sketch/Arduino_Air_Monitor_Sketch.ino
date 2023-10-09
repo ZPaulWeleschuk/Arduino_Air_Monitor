@@ -164,12 +164,7 @@ uint8_t lastS8Reading =0;
 int minCO2 = 400;
 int maxCO2 = 2000;
 
-
-
 //TODO: I need to determine weather to use  station pressure, barometric pressure, or just altitude.
-
-//TODO:I need to create some sort of last time a reading was took variable from the RTC so I can determine if at least 4
-//seconds has occured since the last reading so that I dont have to use delay(4000) which will interupt the entire program
 
 
 //---------------------------------------------------------------------------------
@@ -205,8 +200,6 @@ bool valueError = false;
 
 //---------------------------------------------------------------------------------
 //time module
-//uRTCLib rtc(0x68);
-// set up for I2C
 uRTCLib rtc;
 
 int currentMinute;
@@ -221,10 +214,6 @@ int counter;
 float totalTempReadings;
 float averageTempReading;
 float previousaverageTempReading;
-
-// float bmeTotalTempReadings;
-// float bmeAverageTempReading;
-// float bmePreviousaverageTempReading;
 
 float totalIAQReadings;
 float averageIAQReading;
@@ -262,8 +251,6 @@ int mapBottomPreviousCO2;
 int mapTopTemp;
 int mapTopPreviousTemp;
 
-// int mapBmeTopTemp;
-// int mapBmeTopPreviousTemp;
 
 int mapMiddleTemp;
 int mapMiddlePreviousTemp;
@@ -274,10 +261,8 @@ float averageHumidityReading;
 float previousaverageHumidityReading;
 
 
-
 int mapTopHumidity;
 int mapTopPreviousHumidity;
-
 
 
 int mapMiddleHumidity;
@@ -285,7 +270,6 @@ int mapMiddlePreviousHumidity;
 
 
 //---------------------------------------------------------------------------------
-
 
 
 
@@ -434,15 +418,6 @@ if (pms.read(data)){
 
 
 
-  // //display
-  // tft.init(240, 320);
-
-
-  // //make the display show the proper colors
-  // tft.invertDisplay(0);
-
-  // // Clear screen and draw graph axes
-  // tft.fillScreen(ST77XX_BLACK);
   //-----------------------
     tft.setTextSize(1);
     tft.fillScreen(ST77XX_BLACK);
@@ -497,8 +472,6 @@ if (pms.read(data)){
    drawDualScalePoint(80, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
    drawDualScalePoint(100, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
    
-
-
 
 
   //top right axis
@@ -607,6 +580,7 @@ void loop() {
 
 //PMS
 //TODO:check wiring. it was working fine but then i think i bumped the bread board and now its not reading. but it was working
+//TODO: note to self: check the serial init and wiriing
 if (pms.read(data)){
   pm25 = data.PM_AE_UG_2_5;
   pm10 = data.PM_AE_UG_10_0;
@@ -632,9 +606,6 @@ CO2value = co2SenseAir();
   else {
  humidity = event.relative_humidity;
   }
-
-
-
 
 
   // Scale value to fit graph
@@ -778,8 +749,6 @@ totalCO2Readings = 0;
 
 
 
-
-
     previousPixelPos = pixelPos;
     counter = 0;
   }
@@ -797,9 +766,6 @@ totalCO2Readings = 0;
     totalCO2Readings += CO2cor;
   }
 
-
-
-      //---------------------------------
 
 
   //---------------------------------
@@ -820,7 +786,7 @@ totalCO2Readings = 0;
   tft.print(rtc.minute());
   tft.print(":");
   tft.print(rtc.second());
-  tft.println("   ");//TODO:???i cant remember what this is for
+  tft.println("   ");
 
   tft.setTextColor(ST77XX_CYAN, ST77XX_BLACK);
   tft.setCursor(145, 0);
@@ -845,7 +811,7 @@ totalCO2Readings = 0;
   tft.print(rtc.minute());
   tft.print(":");
   tft.print(rtc.second());
-  tft.println("   ");//TODO:??
+  tft.println("   ");
 
   tft.setTextColor(PURPLE, ST77XX_BLACK);
   tft.setCursor(145, 180);
