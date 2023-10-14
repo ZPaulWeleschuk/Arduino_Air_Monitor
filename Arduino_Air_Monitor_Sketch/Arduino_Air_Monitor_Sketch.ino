@@ -278,11 +278,11 @@ int mapMiddlePreviousHumidity;
 
 void setup() {
   Serial.begin(115200);   //for serial monitor
-  Serial3.begin(9600);  //for PMS //TODO:try software serial for this sensor aswell
+  //Serial3.begin(9600);  //for PMS //TODO:try software serial for this sensor aswell
     //Serial1.begin(9600);  //for PMS //TODO:try software serial for this sensor aswell
   //co2sensor.begin(9600); // S8 runs at 9600 baud 
   Serial2.begin(9600);
-  delay(4000);  // wait for console opening
+  //delay(4000);  // wait for console opening
   Serial.println("Setup Begin");
 
   dht.begin();
@@ -342,18 +342,6 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   //TODO:ok so th plan hear is to condence the above code to a single line. we will also need to get perssure form the bme
   //previousAverageCO2Reading = round(float(CO2value) + (0.016 * ((1013 - float(hpa)) / 10) * (float(CO2value) - 400)));
  
-
-
-//PMS7003
-if (pms.read(data)){
-  previousAveragePM25Reading = data.PM_AE_UG_2_5;
-  previousAveragePM10Reading = data.PM_AE_UG_10_0;
-
-}
- else{
-   Serial.println("ERROR: pms not reading");
- }
-
 
   //BME680
  pinMode(LED_BUILTIN, OUTPUT); //onboard led
@@ -422,6 +410,15 @@ if (pms.read(data)){
  previousaverageHumidityReading = event.relative_humidity;
   }
 
+  Serial3.begin(9600); 
+//PMS7003
+if (pms.read(data)){
+  previousAveragePM25Reading = data.PM_AE_UG_2_5;
+  previousAveragePM10Reading = data.PM_AE_UG_10_0;
+}
+ else{
+   Serial.println("ERROR: pms not reading in setup");
+ }
 
 
   //-----------------------
@@ -590,21 +587,23 @@ void loop() {
 }
 
 //PMS
-//if ( (rtc.second() > pmsReadingInterval) && (abs(rtc.second() - lastPmsReading )> pmsReadingInterval)){
-if (pms.read(data)){
+if ( (rtc.second() > pmsReadingInterval) && (abs(rtc.second() - lastPmsReading )> pmsReadingInterval)){
+  //for some reason the pms doesnt like to be blocked in any way???
+
+if (pms.readUntil(data)){
   pm25 = data.PM_AE_UG_2_5;
   pm10 = data.PM_AE_UG_10_0;
-    Serial.println("succesful read pms 2.5:");
+    Serial.print("succesful read pms 2.5:");
     Serial.print(pm25);
     Serial.print("  pm10:");
-    Serial.print(pm10);
+    Serial.println(pm10);
 
 }
-// else {
-//   Serial.println("error: unable to read pms");
-// }
-// lastPmsReading= rtc.second();
-// }
+else {
+  Serial.println("error: unable to read pms");
+}
+ lastPmsReading= rtc.second();
+ }
 
 //S8
 if ( (rtc.second() > S8ReadingInterval) && (abs(rtc.second() - lastS8Reading )> S8ReadingInterval)){
@@ -849,6 +848,7 @@ totalCO2Readings = 0;
 
   tft.print("PM2.5:");
   tft.print(pm25);
+  tft.println("    ");
   //TODO:testing remove
   //    Serial.print("PM 2.5 (ug/m3): ");
   //  Serial.println(pm25);
@@ -860,6 +860,7 @@ totalCO2Readings = 0;
 
   tft.print("PM10:");
   tft.print(pm10);
+  tft.println("    ");
       //  Serial.print("PM 10.0  (ug/m3): ");
       //    Serial.println(pm10);
 
