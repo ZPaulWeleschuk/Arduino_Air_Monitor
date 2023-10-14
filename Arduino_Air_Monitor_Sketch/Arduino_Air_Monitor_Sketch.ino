@@ -29,16 +29,6 @@ using namespace std;
 ┌────────────────┐
 │Board │SPI Pin #│
 ├──────┼─────────┤
-│UNO   │MOSI: 11 │
-│      │MISO: 12 │
-│      │SCK: 13  │
-│      │CS: 10   │
-├──────┼─────────┤
-│NANO  │MOSI: 11 │
-│      │MISO: 12 │
-│      │SCK: 13  │
-│      │CS: 10   │
-├──────┼─────────┤
 │MEGA  │MOSI: 51 │
 │      │MISO: 50 │
 │      │SCK: 52  │
@@ -89,7 +79,8 @@ const int maxIaq = 200;
 const int minPressure =86;//kpa
 const int  maxPressure = 91;//kpa
 
-
+uint8_t lastBmeReading =0;
+const byte bmeReadingInterval = 2;
 
 
 
@@ -107,6 +98,8 @@ float logR2, R2, T;
 float c1 = 1.009249522e-03, c2 = 2.378405444e-04, c3 = 2.019202697e-07;
 float temperature;
 
+uint8_t lastTempReading =0;
+const byte tempReadingInterval = 1;
 
 //---------------------------------------------------------------------------------
 //Humidity Sensor
@@ -116,10 +109,14 @@ DHT_Unified dht(DHT22DataPin, DHTTYPE);
 float humidity;
 sensors_event_t event;
 
+uint8_t lastHumidityReading =0;
+byte humidityReadingInterval = 2;
+
 //---------------------------------------------------------------------------------
 //PMS 7003
 //particulate matter sensor
-PMS pms(Serial1);
+//PMS pms(Serial1);
+PMS pms(Serial3);
 PMS::DATA data;
 //note data is returned as unsigned 16 bit int
 //TODO: use the proper data type
@@ -132,6 +129,11 @@ int maxPm25 = 60;
 
 int minPm10 = 0;
 int maxPm10 = 100;
+
+uint8_t lastPmsReading =0;
+const byte pmsReadingInterval = 3;
+
+//TODO: add lastPMSReading variable and set it to take a measurement every 3 seconds
 
 //---------------------------------------------------------------------------------
 //SenseAir S8
@@ -160,6 +162,7 @@ float CO2cor;
 float hpa;
 
 uint8_t lastS8Reading =0;
+const byte S8ReadingInterval = 4;
 
 int minCO2 = 400;
 int maxCO2 = 2000;
@@ -275,7 +278,8 @@ int mapMiddlePreviousHumidity;
 
 void setup() {
   Serial.begin(115200);   //for serial monitor
-  Serial1.begin(9600);  //for PMS //TODO:try software serial for this sensor aswell
+  Serial3.begin(9600);  //for PMS //TODO:try software serial for this sensor aswell
+    //Serial1.begin(9600);  //for PMS //TODO:try software serial for this sensor aswell
   //co2sensor.begin(9600); // S8 runs at 9600 baud 
   Serial2.begin(9600);
   delay(4000);  // wait for console opening
@@ -344,9 +348,11 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
 if (pms.read(data)){
   previousAveragePM25Reading = data.PM_AE_UG_2_5;
   previousAveragePM10Reading = data.PM_AE_UG_10_0;
-}else{
-  Serial.println("ERROR: pms not reading");
+
 }
+ else{
+   Serial.println("ERROR: pms not reading");
+ }
 
 
   //BME680
@@ -563,33 +569,45 @@ void loop() {
   // put your main code here, to run repeatedly:
 
   //Temp
+  if ((rtc.second() > tempReadingInterval) && (abs(rtc.second()-lastTempReading)> tempReadingInterval)){
   R2 = R1 * (1023.0 / (float)(analogRead(ntcInput)) - 1.0);
   logR2 = log(R2);
   temperature = ((1.0 / (c1 + c2 * logR2 + c3 * logR2 * logR2 * logR2)) - 273.15);
   //rounds temperature to one decimal place.
   temperature = round(temperature * 10) / 10.0;
-
+    lastTempReading= rtc.second();
+  }
 
 //BME
+  if ((rtc.second() > bmeReadingInterval) && (abs(rtc.second()-lastBmeReading)> bmeReadingInterval)){
   if (BME.run()) { 
   bme_IAQ = BME.iaq;
   bme_pressure = BME.pressure/1000;
   }else {
        checkIaqSensorStatus();
   }
+  lastBmeReading= rtc.second();
+}
 
 //PMS
-//TODO:check wiring. it was working fine but then i think i bumped the bread board and now its not reading. but it was working
-//TODO: note to self: check the serial init and wiriing
+//if ( (rtc.second() > pmsReadingInterval) && (abs(rtc.second() - lastPmsReading )> pmsReadingInterval)){
 if (pms.read(data)){
   pm25 = data.PM_AE_UG_2_5;
   pm10 = data.PM_AE_UG_10_0;
-}else {
-  //Serial.println("error: unable to read pms");
+    Serial.println("succesful read pms 2.5:");
+    Serial.print(pm25);
+    Serial.print("  pm10:");
+    Serial.print(pm10);
+
 }
+// else {
+//   Serial.println("error: unable to read pms");
+// }
+// lastPmsReading= rtc.second();
+// }
 
 //S8
-if ( (rtc.second() > 4) && (abs(rtc.second() - lastS8Reading )> 4)){
+if ( (rtc.second() > S8ReadingInterval) && (abs(rtc.second() - lastS8Reading )> S8ReadingInterval)){
   //S8 can only take a reading once every 4 seconds
 CO2value = co2SenseAir();
     hPaCalculation();
@@ -598,13 +616,17 @@ CO2value = co2SenseAir();
   lastS8Reading = rtc.second();
 }
 
+
   //Humidity
+if ( (rtc.second() > humidityReadingInterval) && (abs(rtc.second() - lastHumidityReading )> humidityReadingInterval)){
   dht.humidity().getEvent(&event);
   if (isnan(event.relative_humidity)) {
     Serial.println(F("Error reading humidity!"));
   }
   else {
  humidity = event.relative_humidity;
+  }
+    lastHumidityReading = rtc.second();
   }
 
 
@@ -786,7 +808,7 @@ totalCO2Readings = 0;
   tft.print(rtc.minute());
   tft.print(":");
   tft.print(rtc.second());
-  tft.println("   ");
+  tft.println("  ");
 
   tft.setTextColor(ST77XX_CYAN, ST77XX_BLACK);
   tft.setCursor(145, 0);
@@ -811,7 +833,7 @@ totalCO2Readings = 0;
   tft.print(rtc.minute());
   tft.print(":");
   tft.print(rtc.second());
-  tft.println("   ");
+  tft.println("  ");
 
   tft.setTextColor(PURPLE, ST77XX_BLACK);
   tft.setCursor(145, 180);
@@ -828,8 +850,8 @@ totalCO2Readings = 0;
   tft.print("PM2.5:");
   tft.print(pm25);
   //TODO:testing remove
-  //   Serial.print("PM 2.5 (ug/m3): ");
-  // Serial.println(pm25);
+  //    Serial.print("PM 2.5 (ug/m3): ");
+  //  Serial.println(pm25);
 
 
 
@@ -838,8 +860,8 @@ totalCO2Readings = 0;
 
   tft.print("PM10:");
   tft.print(pm10);
-      // Serial.print("PM 10.0  (ug/m3): ");
-      //   Serial.println(pm10);
+      //  Serial.print("PM 10.0  (ug/m3): ");
+      //    Serial.println(pm10);
 
 
 
@@ -848,13 +870,14 @@ totalCO2Readings = 0;
   tft.setCursor(145, 190);
   tft.print("CO2:");
   tft.print(CO2cor);
-  Serial.print("CO2:");
-  Serial.println(CO2cor);
+  // Serial.print("CO2:");
+  // Serial.println(CO2cor);
   
 
 
   //Serial.println("Loop Complete");
-  delay(1000);  //add a one second delay
+  //TODO:we need to remove blocking code (ie: delay()) from the main loop as it causes the pms sensor to error
+  //delay(1000);  //add a one second delay
 }
 
 //draw the y-axis
@@ -1016,8 +1039,8 @@ void hPaCalculation()
   hpa = 1014.7;//we can pull kpa from BME so no need to calc. 
   //TODO:typically reading 1050ish units of co2 in office. need to take outside and see what reading is, should be about 412ppm
   //or why dont we define it as this?. . . //TODO://TODO:
-  Serial.print(F("Atmospheric pressure calculated by the sea level inserted (hPa): "));
-  Serial.println(hpa);
+  //Serial.print(F("Atmospheric pressure calculated by the sea level inserted (hPa): "));
+  //Serial.println(hpa);
 }
 
 // SenseAir S8 routines
@@ -1061,7 +1084,7 @@ int co2SenseAir()
     crc_cmd = crcx::crc16(responseSA, 5);
     if (responseSA[5] == lowByte(crc_cmd) && responseSA[6] == highByte(crc_cmd))
     {
-      Serial.print("OK");
+      //Serial.print("OK");
       return CO2;
     }
     else
