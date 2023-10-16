@@ -311,39 +311,7 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   tft.setCursor(5, 0);
   tft.print("initializing");
 
-
-
-
-//Sensair S8
-//sensor need 30 to heat up to operating temp
-//TODO:we will just delay for now but will have to draw some graphics 
-  Serial.print(F("Preheat: "));
-  for (int i = 30; i > -1; i--){ // Preheat from 0 to 30 or to 180
-    delay(1000);
-    Serial.println(i);
-    delay(1000);
-      tft.setCursor(5, 25);
-  tft.print("Start up in:");
-    tft.print(i);
-    tft.print("  ");
-    i--;
-  }
-  Serial.print(F("Start measurements compensated by Altitude: "));
-  Serial.print(VALalti * 50);
-  Serial.println(" m");
-  delay(5000);
-
-  CO2 = 0;
-  CO2value = co2SenseAir();
-    hPaCalculation();
-    CO2cor = float(CO2value) + (0.016 * ((1013 - float(hpa)) / 10) * (float(CO2value) - 400)); // Increment of 1.6% for every hPa of difference at sea level
-    previousAverageCO2Reading = round(CO2cor);
-  lastS8Reading = rtc.second();
-  //TODO:ok so th plan hear is to condence the above code to a single line. we will also need to get perssure form the bme
-  //previousAverageCO2Reading = round(float(CO2value) + (0.016 * ((1013 - float(hpa)) / 10) * (float(CO2value) - 400)));
- 
-
-  //BME680
+//BME680
  pinMode(LED_BUILTIN, OUTPUT); //onboard led
   BME.begin(BME68X_I2C_ADDR_HIGH, Wire);
     checkIaqSensorStatus();
@@ -368,8 +336,40 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   checkIaqSensorStatus();
   if (BME.run()){
     previousAverageIAQReading = BME.iaq;
-    previousAveragePressureReading = BME.pressure/1000;
+    previousAveragePressureReading = BME.pressure/1000; //divide by 1000 to convert pa to kpa
   }
+
+
+//Sensair S8
+//sensor need 30 to heat up to operating temp
+//TODO:we will just delay for now but will have to draw some graphics 
+  Serial.print(F("Preheat: "));
+  for (int i = 30; i > -1; i--){ // Preheat from 0 to 30 or to 180
+    delay(1000);
+    Serial.println(i);
+    delay(1000);
+      tft.setCursor(5, 25);
+  tft.print("Start up in:");
+    tft.print(i);
+    tft.print("  ");
+    i--;
+  }
+  Serial.print(F("Start measurements compensated by Altitude: "));
+  Serial.print(VALalti * 50);
+  Serial.println(" m");
+  delay(5000);
+
+  CO2 = 0;
+  CO2value = co2SenseAir();
+    // hPaCalculation();
+    //times by 10 to covert kpa to hpa
+    CO2cor = float(CO2value) + (0.016 * ((1013 - float((previousAveragePressureReading*10))) / 10) * (float(CO2value) - 400)); // Increment of 1.6% for every hPa of difference at sea level
+    previousAverageCO2Reading = round(CO2cor);
+  lastS8Reading = rtc.second();
+  //TODO:ok so th plan hear is to condence the above code to a single line. we will also need to get perssure form the bme
+  //previousAverageCO2Reading = round(float(CO2value) + (0.016 * ((1013 - float(hpa)) / 10) * (float(CO2value) - 400)));
+ 
+
 
 
   //thermistor
@@ -609,8 +609,9 @@ else {
 if ( (rtc.second() > S8ReadingInterval) && (abs(rtc.second() - lastS8Reading )> S8ReadingInterval)){
   //S8 can only take a reading once every 4 seconds
 CO2value = co2SenseAir();
-    hPaCalculation();
-    CO2cor = float(CO2value) + (0.016 * ((1013 - float(hpa)) / 10) * (float(CO2value) - 400)); // Increment of 1.6% for every hPa of difference at sea level
+    //hPaCalculation();
+//times pressure by 10 to convert kpa to hpa
+    CO2cor = float(CO2value) + (0.016 * ((1013 - float((bme_pressure*10))) / 10) * (float(CO2value) - 400)); // Increment of 1.6% for every hPa of difference at sea level
     previousAverageCO2Reading = round(CO2cor);
   lastS8Reading = rtc.second();
 }
@@ -871,6 +872,7 @@ totalCO2Readings = 0;
   tft.setCursor(145, 190);
   tft.print("CO2:");
   tft.print(CO2cor);
+  tft.println("      ");
   // Serial.print("CO2:");
   // Serial.println(CO2cor);
   
