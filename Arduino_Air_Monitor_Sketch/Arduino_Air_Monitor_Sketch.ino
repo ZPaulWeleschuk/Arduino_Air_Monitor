@@ -221,8 +221,8 @@ float previousaverageTempReading;
 float totalIAQReadings;
 float averageIAQReading;
 float previousAverageIAQReading;
-int mapMiddleIAQ;
-int mapMiddlePreviousIAQ;
+int mapBottomIAQ;
+int mapBottomPreviousIAQ;
 
 float totalPressureReadings;
 float averagePressureReading;
@@ -233,14 +233,14 @@ int mapMiddlePreviousPressure;
 float totalPM25Readings;//TODO:double check is we double cap "PM" or "Pm", anyways keep it consistent
 float averagePM25Reading;
 float previousAveragePM25Reading;
-int mapBottomPM25;
-int mapBottomPreviousPM25;
+int mapMiddlePM25;
+int mapMiddlePreviousPM25;
 
 float totalPM10Readings;
 float averagePM10Reading;
 float previousAveragePM10Reading;
-int mapBottomPM10;
-int mapBottomPreviousPM10;
+int mapMiddlePM10;
+int mapMiddlePreviousPM10;
 
 float totalCO2Readings;
 float averageCO2Reading;
@@ -424,7 +424,7 @@ if (pms.read(data)){
   //-----------------------
     tft.setTextSize(1);
     tft.fillScreen(ST77XX_BLACK);
-  //draw temp axis (top left axis)
+  //draw temperature axis (top left axis)
   tft.drawFastVLine(graphXPos - 3, graphTopYPos, graphHeight, ST77XX_GREEN);
   drawScalePoint(15, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, false, true);
   drawScalePoint(16, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
@@ -434,50 +434,7 @@ if (pms.read(data)){
   drawScalePoint(24, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
   drawScalePoint(26, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
 
-  //middle left axis
-  //TODO:we might need to do something about 3 digit numbers being to far to the right, on the left side
-   tft.drawFastVLine(graphXPos - 3, graphMiddleYPos, graphHeight, ST77XX_YELLOW);
-  drawScalePoint(0, minIaq, maxIaq, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, false, true);
-  drawScalePoint(30, minIaq, maxIaq, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
-  drawScalePoint(60, minIaq, maxIaq, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
-  drawScalePoint(90, minIaq, maxIaq, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
-  drawScalePoint(120, minIaq, maxIaq, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
-  drawScalePoint(150, minIaq, maxIaq, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
-  drawScalePoint(170, minIaq, maxIaq, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
-  drawScalePoint(200, minIaq, maxIaq, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_YELLOW, true, true);
-
-
-   tft.drawFastVLine(graphXPos + graphWidth + 3, graphMiddleYPos, graphHeight, PURPLE);
-   drawScalePoint(86, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);//TODO:theses are not working for some reason, displaying wrong number
-   drawScalePoint(87, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
-   drawScalePoint(88, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
-   drawScalePoint(89, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
-   drawScalePoint(90, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
-   drawScalePoint(91, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
-
-
-  //bottom left axis
-  //tft.drawFastVLine(graphXPos - 3, graphBottomYPos, graphHeight, BLUE);
-   drawDualScalePoint(0, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
-   drawDualScalePoint(10, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
-   drawDualScalePoint(20, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
-   drawDualScalePoint(30, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
-   drawDualScalePoint(40, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
-   drawDualScalePoint(50, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
-
-
-  //test Double axis
-  tft.drawFastVLine(graphXPos - 3, graphBottomYPos, graphHeight, ST77XX_CYAN);
-   drawDualScalePoint(0, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
-   drawDualScalePoint(10, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
-   drawDualScalePoint(20, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
-   drawDualScalePoint(30, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
-   drawDualScalePoint(40, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
-   drawDualScalePoint(50, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
-   
-
-
-  //top right axis
+  //draw humidity axis (top right axis)
   tft.drawFastVLine(graphXPos + graphWidth + 3, graphTopYPos, graphHeight, ST77XX_CYAN);
   drawScalePoint(25, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false);
   drawScalePoint(30, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
@@ -487,18 +444,55 @@ if (pms.read(data)){
   drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
   drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false);
 
+  //draw PM2.5 axis (middle left double axis)
+   drawDualScalePoint(0, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true);
+   drawDualScalePoint(10, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true);
+   drawDualScalePoint(20, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true);
+   drawDualScalePoint(30, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true);
+   drawDualScalePoint(40, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true);
+   drawDualScalePoint(50, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true);
+  //draw PM10 axis (middle left double axis)
+  tft.drawFastVLine(graphXPos - 3, graphMiddleYPos, graphHeight, ST77XX_CYAN);
+   drawDualScalePoint(0, minPm10, maxPm10, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_CYAN, true, false);
+   drawDualScalePoint(10, minPm10, maxPm10, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_CYAN, true, false);
+   drawDualScalePoint(20, minPm10, maxPm10, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_CYAN, true, false);
+   drawDualScalePoint(30, minPm10, maxPm10, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_CYAN, true, false);
+   drawDualScalePoint(40, minPm10, maxPm10, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_CYAN, true, false);
+   drawDualScalePoint(50, minPm10, maxPm10, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_CYAN, true, false);
 
-  //bottom right axis
-  // tft.drawFastVLine(graphXPos + graphWidth + 3, graphBottomYPos, graphHeight, RED);
-   drawScalePoint(400, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, RED, false, false);
-  drawScalePoint(600, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
-    drawScalePoint(800, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
-  drawScalePoint(1000, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
-  drawScalePoint(1200, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
-  drawScalePoint(1400, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
-  drawScalePoint(1600, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
-  drawScalePoint(1800, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
-    drawScalePoint(2000, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, false);
+//draw pressure axis (middle right axis)
+   tft.drawFastVLine(graphXPos + graphWidth + 3, graphMiddleYPos, graphHeight, PURPLE);
+   drawScalePoint(86, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, false, false);
+   drawScalePoint(87, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
+   drawScalePoint(88, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
+   drawScalePoint(89, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
+   drawScalePoint(90, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
+   drawScalePoint(91, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
+
+   //draw VOC axis (bottim left axis)
+   tft.drawFastVLine(graphXPos - 3, graphBottomYPos, graphHeight, RED);
+  drawScalePoint(0, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, false, true);
+  drawScalePoint(30, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true);
+  drawScalePoint(60, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true);
+  drawScalePoint(90, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true);
+  drawScalePoint(120, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true);
+  drawScalePoint(150, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true);
+  drawScalePoint(170, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true);
+  drawScalePoint(200, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true);
+
+  //draw CO2 axis (bottom right axis)
+    tft.drawFastVLine(graphXPos + graphWidth + 3, graphBottomYPos, graphHeight, ST77XX_YELLOW);
+   drawScalePoint(400, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false);
+  drawScalePoint(600, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false);
+    drawScalePoint(800, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false);
+  drawScalePoint(1000, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false);
+  drawScalePoint(1200, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false);
+  drawScalePoint(1400, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false);
+  drawScalePoint(1600, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false);
+  drawScalePoint(1800, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false);
+    drawScalePoint(2000, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false);
+
+
 
 
   //draw time axis
@@ -531,7 +525,7 @@ if (pms.read(data)){
   drawTimeScalePoint(24, 0, 24, graphXPos, graphXPos + graphWidth, graphTopYPos, ST77XX_WHITE, true, true);
 
 
-  //draw bottom axis
+  //draw lower time axis
   tft.drawFastHLine(graphXPos, graphBottomYPos + graphHeight + 1, graphWidth, ST77XX_WHITE);
   drawTimeScalePoint(0, 0, 24, graphXPos, graphXPos + graphWidth, graphBottomYPos, ST77XX_WHITE, true, false);
   drawTimeScalePoint(1, 0, 24, graphXPos, graphXPos + graphWidth, graphBottomYPos, ST77XX_WHITE, false, false);
@@ -724,12 +718,6 @@ averageCO2Reading = (float) totalCO2Readings / (float) counter;
               previousaverageHumidityReading = averageHumidityReading;
     totalHumidityReadings = 0;
 
-//map and draw IAQ on middle graph
-    mapMiddleIAQ = mapf(averageIAQReading, minIaq, maxIaq, graphHeight + graphMiddleYPos, graphMiddleYPos);
-    mapMiddlePreviousIAQ = mapf(previousAverageIAQReading, minIaq, maxIaq, graphHeight + graphMiddleYPos, graphMiddleYPos);
-    tft.drawLine(graphXPos + previousPixelPos, mapMiddlePreviousIAQ, graphXPos+ pixelPos, mapMiddleIAQ,ST77XX_YELLOW );
-    previousAverageIAQReading = averageIAQReading;
-    totalIAQReadings = 0;
 
 //map and draw pressure on middle graph
         mapMiddlePressure = mapf(averagePressureReading, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos);
@@ -739,19 +727,27 @@ averageCO2Reading = (float) totalCO2Readings / (float) counter;
     totalPressureReadings = 0;
 
 //map and draw pm 2.5 on bottom graph
-mapBottomPM25 = mapf(averagePM25Reading, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos);
-mapBottomPreviousPM25 = mapf(previousAveragePM25Reading, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos);
-tft.drawLine(graphXPos + previousPixelPos, mapBottomPreviousPM25, graphXPos + pixelPos, mapBottomPM25, BLUE);
+mapMiddlePM25 = mapf(averagePM25Reading, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos);
+mapMiddlePreviousPM25 = mapf(previousAveragePM25Reading, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos);
+tft.drawLine(graphXPos + previousPixelPos, mapMiddlePreviousPM25, graphXPos + pixelPos, mapMiddlePM25, BLUE);
 previousAveragePM25Reading = averagePM25Reading;
 totalPM25Readings = 0;
 
-//map and draw pm 10 on bottom graph
-mapBottomPM10 = mapf(averagePM10Reading, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos);
-mapBottomPreviousPM10 = mapf(previousAveragePM10Reading, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos);
-tft.drawLine(graphXPos + previousPixelPos, mapBottomPreviousPM10, graphXPos + pixelPos, mapBottomPM10, BLUE);
+//map and draw pm 10 on Middle graph
+mapMiddlePM10 = mapf(averagePM10Reading, minPm10, maxPm10, graphHeight + graphMiddleYPos, graphMiddleYPos);
+mapMiddlePreviousPM10 = mapf(previousAveragePM10Reading, minPm10, maxPm10, graphHeight + graphMiddleYPos, graphMiddleYPos);
+tft.drawLine(graphXPos + previousPixelPos, mapMiddlePreviousPM10, graphXPos + pixelPos, mapMiddlePM10, ST77XX_CYAN);
 previousAveragePM10Reading = averagePM10Reading;
 totalPM10Readings = 0;
 
+//map and draw IAQ on bottom graph
+    mapBottomIAQ = mapf(averageIAQReading, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos);
+    mapBottomPreviousIAQ = mapf(previousAverageIAQReading, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos);
+    tft.drawLine(graphXPos + previousPixelPos, mapBottomPreviousIAQ, graphXPos+ pixelPos, mapBottomIAQ,RED );
+    previousAverageIAQReading = averageIAQReading;
+    totalIAQReadings = 0;
+
+//map co2 on bottom graph
 mapBottomCO2 = mapf(averageCO2Reading, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos);
 mapBottomPreviousCO2 = mapf(previousAverageCO2Reading, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos);
 tft.drawLine(graphXPos + previousPixelPos, mapBottomPreviousCO2, graphXPos + pixelPos, mapBottomCO2, ST77XX_YELLOW);
@@ -818,12 +814,16 @@ totalCO2Readings = 0;
 
   //MIDDLE
   tft.setTextSize(1);
-  tft.setTextColor(ST77XX_YELLOW, ST77XX_BLACK);
+  tft.setTextColor(BLUE, ST77XX_BLACK);
   tft.setCursor(5, 180);
 
-  tft.print("IAQ:");
-  tft.print(bme_IAQ);
-  
+  tft.print("PM2.5:");
+  tft.print(pm25);
+  tft.println("    ");
+    //TODO:testing remove
+  //    Serial.print("PM 2.5 (ug/m3): ");
+  //  Serial.println(pm25);
+
 
   tft.setTextColor(ST77XX_WHITE, ST77XX_BLACK);
   tft.setCursor(85, 180);
@@ -841,22 +841,15 @@ totalCO2Readings = 0;
   tft.print("");//TODO:
 
   //BOTTOM
-  //TODO:test spacing for pm2.5 pm10 and co2
-  tft.setTextSize(1);
-  tft.setTextColor(BLUE, ST77XX_BLACK);
-  tft.setCursor(5, 190);
+    tft.setTextSize(1);
+  tft.setTextColor(RED, ST77XX_BLACK);
+  tft.setCursor(75, 190);
 
-  tft.print("PM2.5:");
-  tft.print(pm25);
-  tft.println("    ");
-  //TODO:testing remove
-  //    Serial.print("PM 2.5 (ug/m3): ");
-  //  Serial.println(pm25);
-
-
+  tft.print("IAQ:");
+  tft.print(bme_IAQ);
 
   tft.setTextColor(ST77XX_CYAN, ST77XX_BLACK);
-  tft.setCursor(75, 190);
+  tft.setCursor(5, 190);
 
   tft.print("PM10:");
   tft.print(pm10);
@@ -867,7 +860,7 @@ totalCO2Readings = 0;
 
 
 
-  tft.setTextColor(RED, ST77XX_BLACK);
+  tft.setTextColor(ST77XX_YELLOW, ST77XX_BLACK);
   tft.setCursor(145, 190);
   tft.print("CO2:");
   tft.print(CO2cor);
