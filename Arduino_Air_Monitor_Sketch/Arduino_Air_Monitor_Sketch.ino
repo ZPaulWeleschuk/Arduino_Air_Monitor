@@ -125,10 +125,10 @@ int pm10;
 
 //ug/m3
 int minPm25 = 0;
-int maxPm25 = 60;
+int maxPm25 = 50;
 
 int minPm10 = 0;
-int maxPm10 = 100;
+int maxPm10 = 50;
 
 uint8_t lastPmsReading =0;
 const byte pmsReadingInterval = 3;
@@ -464,16 +464,16 @@ if (pms.read(data)){
    drawDualScalePoint(30, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
    drawDualScalePoint(40, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
    drawDualScalePoint(50, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
-   drawDualScalePoint(60, minPm25, maxPm25, graphHeight + graphBottomYPos, graphBottomYPos, BLUE, true, true);
+
 
   //test Double axis
   tft.drawFastVLine(graphXPos - 3, graphBottomYPos, graphHeight, ST77XX_CYAN);
    drawDualScalePoint(0, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
+   drawDualScalePoint(10, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
    drawDualScalePoint(20, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
+   drawDualScalePoint(30, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
    drawDualScalePoint(40, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
-   drawDualScalePoint(60, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
-   drawDualScalePoint(80, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
-   drawDualScalePoint(100, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
+   drawDualScalePoint(50, minPm10, maxPm10, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_CYAN, true, false);
    
 
 
@@ -892,12 +892,22 @@ void drawScalePoint(int scalePoint, int yMin, int yMax, int yStart, int yEnd, un
     if (drawLabel == true) {
       tft.setTextColor(color);
       if (onLeft) {
-        tft.setCursor(10, y - 3);  //+3 as text starts at top left and text is ?? px tall and we need to raise it higher
+       if (scalePoint >99){
+         //if number has 3 digits, set cursor furthere over to the left
+          tft.setCursor(5, y-3);
+       } else{
+        tft.setCursor(10, y - 3);  //-3 as text starts at top left and text is ?? px tall and we need to raise it higher
+       }
       } else {
         tft.setCursor(220, y - 3);
       }
 
+      if (scalePoint >999){
+      //1000=> 1.0
+      tft.print(String(float(scalePoint)/1000,1));
+      }else{
       tft.print(scalePoint);
+      }
     }
 }
 
