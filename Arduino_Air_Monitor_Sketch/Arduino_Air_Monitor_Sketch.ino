@@ -11,7 +11,6 @@ using namespace std;
 #include <Adafruit_Sensor.h>
 #include "PMS.h"
 #include "bsec.h"
- //#include <SoftwareSerial.h>
  #include <CRCx.h> //https://github.com/hideakitai/CRCx
 
 
@@ -133,14 +132,10 @@ int maxPm10 = 50;
 uint8_t lastPmsReading =0;
 const byte pmsReadingInterval = 3;
 
-//TODO: add lastPMSReading variable and set it to take a measurement every 3 seconds
 
 //---------------------------------------------------------------------------------
 //SenseAir S8
 //alot of the code for the SenseAir S8 was pulled from Daniel Bernal LibreCO2 project
-// const byte PIN_TX = 16;//16;  // define TX pin to Sensor
-// const byte PIN_RX = 17;//17;  // define RX pin to Sensor
-// SoftwareSerial co2sensor(PIN_RX, PIN_TX);
 
 #define co2sensor Serial2
 
@@ -278,11 +273,8 @@ int mapMiddlePreviousHumidity;
 
 void setup() {
   Serial.begin(115200);   //for serial monitor
-  //Serial3.begin(9600);  //for PMS //TODO:try software serial for this sensor aswell
-    //Serial1.begin(9600);  //for PMS //TODO:try software serial for this sensor aswell
-  //co2sensor.begin(9600); // S8 runs at 9600 baud 
-  Serial2.begin(9600);
-  //delay(4000);  // wait for console opening
+  Serial2.begin(9600); // for CO2 sensor
+  //delay(1000);  // wait for console opening
   Serial.println("Setup Begin");
 
   dht.begin();
@@ -299,7 +291,6 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   // set day of week (1=Sunday, 7=Saturday)
 
 
-
     //display
   tft.init(240, 320);
   //make the display show the proper colors
@@ -312,11 +303,8 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   tft.print("initializing");
 
 
-
-
 //Sensair S8
 //sensor need 30 to heat up to operating temp
-//TODO:we will just delay for now but will have to draw some graphics 
   Serial.print(F("Preheat: "));
   for (int i = 30; i > -1; i--){ // Preheat from 0 to 30 or to 180
     delay(1000);
@@ -375,7 +363,6 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   //thermistor
   pinMode(ntcInput, INPUT);  // analog
 
-  
 
   rtc.refresh();
   currentMinute = rtc.minute();
@@ -410,7 +397,7 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
  previousaverageHumidityReading = event.relative_humidity;
   }
 
-  Serial3.begin(9600); 
+  Serial3.begin(9600); //for pms sensor
 //PMS7003
 if (pms.read(data)){
   previousAveragePM25Reading = data.PM_AE_UG_2_5;
@@ -493,8 +480,6 @@ if (pms.read(data)){
     drawScalePoint(2000, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false);
 
 
-
-
   //draw time axis
   tft.drawFastHLine(graphXPos, graphTopYPos + graphHeight + 1, graphWidth, ST77XX_WHITE);
   tft.drawFastHLine(graphXPos, graphTopYPos + graphHeight + 16, graphWidth, ST77XX_WHITE);
@@ -557,8 +542,6 @@ if (pms.read(data)){
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-
   //Temp
   if ((rtc.second() > tempReadingInterval) && (abs(rtc.second()-lastTempReading)> tempReadingInterval)){
   R2 = R1 * (1023.0 / (float)(analogRead(ntcInput)) - 1.0);
@@ -582,8 +565,6 @@ void loop() {
 
 //PMS
 if ( (rtc.second() > pmsReadingInterval) && (abs(rtc.second() - lastPmsReading )> pmsReadingInterval)){
-  //for some reason the pms doesnt like to be blocked in any way???
-
 if (pms.readUntil(data)){
   pm25 = data.PM_AE_UG_2_5;
   pm10 = data.PM_AE_UG_10_0;
@@ -622,17 +603,6 @@ if ( (rtc.second() > humidityReadingInterval) && (abs(rtc.second() - lastHumidit
     lastHumidityReading = rtc.second();
   }
 
-
-  // Scale value to fit graph
-  //https://www.youtube.com/watch?v=j0o5EGeShME
-  /*
-    map(
-      input value,
-      from input value low,
-      from input value high,
-      to output value low,
-      to output value high)
-    */
 
 
   rtc.refresh();
@@ -683,8 +653,6 @@ averageCO2Reading = (float) totalCO2Readings / (float) counter;
 
 
 
-
-
     //safty limit on  temp value
     if (averageTempReading > maxTemp) {
       averageTempReading = maxTemp;
@@ -726,6 +694,8 @@ averageCO2Reading = (float) totalCO2Readings / (float) counter;
     previousAveragePressureReading = averagePressureReading;
     totalPressureReadings = 0;
 
+//TODO:I would actually realy like a logrithmic scale for pm. not sure how difficult that will be tho. something to look into
+
 //map and draw pm 2.5 on bottom graph
 mapMiddlePM25 = mapf(averagePM25Reading, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos);
 mapMiddlePreviousPM25 = mapf(previousAveragePM25Reading, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos);
@@ -754,14 +724,6 @@ tft.drawLine(graphXPos + previousPixelPos, mapBottomPreviousCO2, graphXPos + pix
 previousAverageCO2Reading = averageCO2Reading;
 totalCO2Readings = 0;
 
-
-//bottom graph
-//voc
-// mapVoc = mapf(averageVoc, minVoc, maxVoc, graphHeight+ graphBottomYPos, graphBottomYPos);
-// mapPreviousVoc = mapf(averagePreviousVoc, minVoc, maxVoc, graphHeight+ graphBottomYPos, graphBottomYPos);
-// tft.drawLine(graphXPos+previousPixelPos, mapPreviousVoc, graphXPos +pixelPos, mapVoc,RED );
-// averagePreviousVoc = averageVoc;
-// totalVoc = 0;
 
 
 
@@ -820,9 +782,6 @@ totalCO2Readings = 0;
   tft.print("PM2.5:");
   tft.print(pm25);
   tft.println("    ");
-    //TODO:testing remove
-  //    Serial.print("PM 2.5 (ug/m3): ");
-  //  Serial.println(pm25);
 
 
   tft.setTextColor(ST77XX_WHITE, ST77XX_BLACK);
@@ -838,7 +797,7 @@ totalCO2Readings = 0;
   tft.setCursor(145, 180);
   tft.print("Pressure:");
   tft.print(bme_pressure);
-  tft.print("");//TODO:
+
 
   //BOTTOM
     tft.setTextSize(1);
@@ -854,24 +813,12 @@ totalCO2Readings = 0;
   tft.print("PM10:");
   tft.print(pm10);
   tft.println("    ");
-      //  Serial.print("PM 10.0  (ug/m3): ");
-      //    Serial.println(pm10);
-
-
 
 
   tft.setTextColor(ST77XX_YELLOW, ST77XX_BLACK);
   tft.setCursor(145, 190);
   tft.print("CO2:");
   tft.print(CO2cor);
-  // Serial.print("CO2:");
-  // Serial.println(CO2cor);
-  
-
-
-  //Serial.println("Loop Complete");
-  //TODO:we need to remove blocking code (ie: delay()) from the main loop as it causes the pms sensor to error
-  //delay(1000);  //add a one second delay
 }
 
 //draw the y-axis
@@ -924,7 +871,6 @@ if(!isLeftSide){
     }}
 }
 
-
 //draw the time axis (x-axis)
 void drawTimeScalePoint(int timePoint, int xMin, int xMax, int xStart, int xEnd, int yPos, unsigned int color, bool drawLabel, bool drawBottomScale) {
   x = map(timePoint, xMin, xMax, xStart, xEnd);
@@ -963,7 +909,6 @@ void checkIaqSensorStatus(void)
       Serial.println(output);
     }
   }
-
 
   if (BME.bme68xStatus != BME68X_OK) {
     if (BME.bme68xStatus < BME68X_OK) {
@@ -1053,8 +998,6 @@ void hPaCalculation()
 void CO2iniSenseAir()
 {
   //Deactivate Automatic Self-Calibration
-  //co2sensor.write(cmdOFFs, MB_PKT_8);
-  //co2sensor.readBytes(response, MB_PKT_8);
     Serial2.write(cmdOFFs, MB_PKT_8);
   Serial2.readBytes(response, MB_PKT_8);
   Serial.print(F("Deactivate Automatic Self-Calibration SenseAir S8: "));
@@ -1075,8 +1018,6 @@ int co2SenseAir()
 {
   static byte responseSA[MB_PKT_7] = {0};
   memset(responseSA, 0, MB_PKT_7);
-  //co2sensor.write(cmdReSA, MB_PKT_8);
-  //co2sensor.readBytes(responseSA, MB_PKT_7);
     Serial2.write(cmdReSA, MB_PKT_8);
   Serial2.readBytes(responseSA, MB_PKT_7);
   CO2 = (256 * responseSA[3]) + responseSA[4];
@@ -1088,7 +1029,6 @@ int co2SenseAir()
     crc_cmd = crcx::crc16(responseSA, 5);
     if (responseSA[5] == lowByte(crc_cmd) && responseSA[6] == highByte(crc_cmd))
     {
-      //Serial.print("OK");
       return CO2;
     }
     else
