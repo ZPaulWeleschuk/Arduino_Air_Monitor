@@ -324,11 +324,11 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
   CO2 = 0;
   CO2value = co2SenseAir();
     hPaCalculation();
-    CO2cor = float(CO2value) + (0.016 * ((1013 - float(hpa)) / 10) * (float(CO2value) - 400)); // Increment of 1.6% for every hPa of difference at sea level
+    CO2cor = float(CO2value) + (0.016 * ((1013 - float(hpa)) / 10) * (float(CO2value) - 400));//adjusts for altitude above sea level
     previousAverageCO2Reading = round(CO2cor);
   lastS8Reading = rtc.second();
-  //TODO:ok so th plan hear is to condence the above code to a single line. we will also need to get perssure form the bme
-  //previousAverageCO2Reading = round(float(CO2value) + (0.016 * ((1013 - float(hpa)) / 10) * (float(CO2value) - 400)));
+
+
  
 
   //BME680
@@ -568,10 +568,10 @@ if ( (rtc.second() > pmsReadingInterval) && (abs(rtc.second() - lastPmsReading )
 if (pms.readUntil(data)){
   pm25 = data.PM_AE_UG_2_5;
   pm10 = data.PM_AE_UG_10_0;
-    Serial.print("succesful read pms 2.5:");
-    Serial.print(pm25);
-    Serial.print("  pm10:");
-    Serial.println(pm10);
+   // Serial.print("succesful read pms 2.5:");
+   // Serial.print(pm25);
+   // Serial.print("  pm10:");
+   // Serial.println(pm10);
 
 }
 else {
@@ -584,6 +584,8 @@ else {
 if ( (rtc.second() > S8ReadingInterval) && (abs(rtc.second() - lastS8Reading )> S8ReadingInterval)){
   //S8 can only take a reading once every 4 seconds
 CO2value = co2SenseAir();
+  // Serial.print("co2value:");
+  // Serial.println(CO2value);
     hPaCalculation();
     CO2cor = float(CO2value) + (0.016 * ((1013 - float(hpa)) / 10) * (float(CO2value) - 400)); // Increment of 1.6% for every hPa of difference at sea level
     previousAverageCO2Reading = round(CO2cor);
@@ -982,18 +984,14 @@ void CheckResponse(uint8_t *a, uint8_t *b, uint8_t len_array_cmp)
 
 
 // Calculate of Atmospheric pressure for S8
+  //return barometric pressure in hectopascal 
 void hPaCalculation()
 {
-  //hpa = 1013 - 5.9 * float(VALalti) + 0.011825 * float(VALalti) * float(VALalti); // Cuadratic regresion formula obtained PA (hpa) from high above the sea
-  hpa = 1014.7;//we can pull kpa from BME so no need to calc. 
-  //TODO:typically reading 1050ish units of co2 in office. need to take outside and see what reading is, should be about 412ppm
-  //or why dont we define it as this?. . . //TODO://TODO:
-  //Serial.print(F("Atmospheric pressure calculated by the sea level inserted (hPa): "));
-  //Serial.println(hpa);
+  //estimate barometric pressure from station pressure
+  hpa = (bme_pressure*10.0)+ 128.1;//note 128.1 is the average difference between station and barometric pressure for Calgary (hpa), averaged over 1000 days
 }
 
 // SenseAir S8 routines
-
 // Initialice SenseAir S8
 void CO2iniSenseAir()
 {
