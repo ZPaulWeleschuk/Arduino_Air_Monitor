@@ -669,7 +669,7 @@ averageCO2Reading = (float) totalCO2Readings / (float) counter;
     }
 
     //TODO:safety limit for iaq and pressure, pm, s8
-
+    //note. could use the constrain() function
 
 
     //get values for graphing
@@ -823,6 +823,8 @@ totalCO2Readings = 0;
   tft.print(CO2cor);
 }
 
+
+
 //draw the y-axis
 void drawScalePoint(int scalePoint, int yMin, int yMax, int yStart, int yEnd, unsigned int color, bool drawLabel, bool onLeft) {
   y = map(scalePoint, yMin, yMax, yStart, yEnd);
@@ -889,6 +891,20 @@ void drawTimeScalePoint(int timePoint, int xMin, int xMax, int xStart, int xEnd,
     }
     tft.print(timePoint);
   }
+}
+
+//TODO: create mapLog functions
+//need to test
+float mapLog(float value, float inputMin, float inputMax,float outputMin, float outputMax){
+  value = log(value);
+  inputMin = log(inputMin);
+  inputMax = log(inputMax);
+
+  float fromRange = inputMax - inputMin;
+  float toRange = outputMax -outputMin ;
+  float scaledValue = (value - inputMin)/ fromRange;
+
+  scaledValue = exp(scaledValue * toRange + outputMin );
 }
 
 //like the map function but accommodates floats
