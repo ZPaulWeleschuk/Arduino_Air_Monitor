@@ -431,21 +431,9 @@ if (pms.read(data)){
   drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
   drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false);
 
-  //draw PM2.5 axis (middle left double axis)
-   drawDualScalePoint(0, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true);
-   drawDualScalePoint(10, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true);
-   drawDualScalePoint(20, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true);
-   drawDualScalePoint(30, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true);
-   drawDualScalePoint(40, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true);
-   drawDualScalePoint(50, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true);
-  //draw PM10 axis (middle left double axis)
+  //draw PM2.5/PM10 axis (middle left  axis)
   tft.drawFastVLine(graphXPos - 3, graphMiddleYPos, graphHeight, ST77XX_CYAN);
-   drawDualScalePoint(0, minPm10, maxPm10, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_CYAN, true, false);
-   drawDualScalePoint(10, minPm10, maxPm10, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_CYAN, true, false);
-   drawDualScalePoint(20, minPm10, maxPm10, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_CYAN, true, false);
-   drawDualScalePoint(30, minPm10, maxPm10, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_CYAN, true, false);
-   drawDualScalePoint(40, minPm10, maxPm10, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_CYAN, true, false);
-   drawDualScalePoint(50, minPm10, maxPm10, graphHeight + graphMiddleYPos, graphMiddleYPos, ST77XX_CYAN, true, false);
+
 
 //draw pressure axis (middle right axis)
    tft.drawFastVLine(graphXPos + graphWidth + 3, graphMiddleYPos, graphHeight, PURPLE);
@@ -855,25 +843,7 @@ void drawScalePoint(int scalePoint, int yMin, int yMax, int yStart, int yEnd, un
     }
 }
 
-///draw two axis on the left side
-///isLeftSide is the left side of the double axis
-void drawDualScalePoint(int scalePoint, int yMin, int yMax, int yStart, int yEnd, unsigned int color, bool drawLabel, bool isLeftSide ) {
-  //
-  y = map(scalePoint, yMin, yMax, yStart, yEnd);
-if(!isLeftSide){
-       tft.drawFastHLine(25, y, 2, color);
-}
-    if (drawLabel == true) {
-      if (isLeftSide){
-      tft.setTextColor(color);
-        tft.setCursor(0, y - 3);  //+3 as text starts at top left and text is ?? px tall and we need to raise it higher
-      tft.print(scalePoint);
-    }else{
-            tft.setTextColor(color);
-        tft.setCursor(13, y - 3);  //+3 as text starts at top left and text is ?? px tall and we need to raise it higher
-      tft.print(scalePoint);
-    }}
-}
+
 
 //draw the time axis (x-axis)
 void drawTimeScalePoint(int timePoint, int xMin, int xMax, int xStart, int xEnd, int yPos, unsigned int color, bool drawLabel, bool drawBottomScale) {
@@ -904,7 +874,9 @@ float mapLog(float value, float inputMin, float inputMax,float outputMin, float 
   float toRange = outputMax -outputMin ;
   float scaledValue = (value - inputMin)/ fromRange;
 
-  scaledValue = exp(scaledValue * toRange + outputMin );
+  scaledValue = exp(scaledValue * toRange + outputMin);
+
+  return scaledValue;
 }
 
 //like the map function but accommodates floats
