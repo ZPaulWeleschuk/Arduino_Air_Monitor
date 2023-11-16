@@ -123,11 +123,11 @@ int pm25;
 int pm10;
 
 //ug/m3
-int minPm25 = 0;
-int maxPm25 = 50;
+int minPm25 = 1;
+int maxPm25 = 1000;
 
-int minPm10 = 0;
-int maxPm10 = 50;
+int minPm10 = 1;
+int maxPm10 = 1000;
 
 uint8_t lastPmsReading =0;
 const byte pmsReadingInterval = 3;
@@ -191,7 +191,7 @@ const int maxHumidity = 75;
 
 
 int x;
-int y;
+float y;
 
 
 bool valueError = false;
@@ -413,59 +413,69 @@ if (pms.read(data)){
     tft.fillScreen(ST77XX_BLACK);
   //draw temperature axis (top left axis)
   tft.drawFastVLine(graphXPos - 3, graphTopYPos, graphHeight, ST77XX_GREEN);
-  drawScalePoint(15, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, false, true);
-  drawScalePoint(16, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
-  drawScalePoint(18, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
-  drawScalePoint(20, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
-  drawScalePoint(22, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
-  drawScalePoint(24, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
-  drawScalePoint(26, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true);
+  drawScalePoint(15, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, false, true,false);
+  drawScalePoint(16, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true,false);
+  drawScalePoint(18, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true,false);
+  drawScalePoint(20, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true,false);
+  drawScalePoint(22, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true,false);
+  drawScalePoint(24, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true,false);
+  drawScalePoint(26, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos, ST77XX_GREEN, true, true,false);
 
   //draw humidity axis (top right axis)
   tft.drawFastVLine(graphXPos + graphWidth + 3, graphTopYPos, graphHeight, ST77XX_CYAN);
-  drawScalePoint(25, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false);
-  drawScalePoint(30, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
-  drawScalePoint(40, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
-  drawScalePoint(50, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
-  drawScalePoint(60, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
-  drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false);
-  drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false);
+  drawScalePoint(25, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false,false);
+  drawScalePoint(30, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false,false);
+  drawScalePoint(40, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false,false);
+  drawScalePoint(50, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false,false);
+  drawScalePoint(60, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false,false);
+  drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false,false);
+  drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false,false);
 
   //draw PM2.5/PM10 axis (middle left  axis)
-  tft.drawFastVLine(graphXPos - 3, graphMiddleYPos, graphHeight, ST77XX_CYAN);
+  tft.drawFastVLine(graphXPos - 3, graphMiddleYPos, graphHeight, BLUE);
+   drawScalePoint(1, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true,true);
+   drawScalePoint(2, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true,true);
+      drawScalePoint(5, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true,true);
+   drawScalePoint(10, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true,true);
+   drawScalePoint(20, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true,true);
+      drawScalePoint(50, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true,true);
+   drawScalePoint(100, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true,true);
+   drawScalePoint(200, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true,true);
+      drawScalePoint(500, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true,true);
+      drawScalePoint(1000, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true,true);
 
 
 //draw pressure axis (middle right axis)
    tft.drawFastVLine(graphXPos + graphWidth + 3, graphMiddleYPos, graphHeight, PURPLE);
-   drawScalePoint(86, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, false, false);
-   drawScalePoint(87, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
-   drawScalePoint(88, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
-   drawScalePoint(89, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
-   drawScalePoint(90, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
-   drawScalePoint(91, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false);
+   drawScalePoint(86, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, false, false,false);
+   drawScalePoint(87, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false,false);
+   drawScalePoint(88, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false,false);
+   drawScalePoint(89, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false,false);
+   drawScalePoint(90, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false,false);
+   drawScalePoint(91, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false,false);
 
    //draw VOC axis (bottim left axis)
    tft.drawFastVLine(graphXPos - 3, graphBottomYPos, graphHeight, RED);
-  drawScalePoint(0, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, false, true);
-  drawScalePoint(30, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true);
-  drawScalePoint(60, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true);
-  drawScalePoint(90, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true);
-  drawScalePoint(120, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true);
-  drawScalePoint(150, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true);
-  drawScalePoint(170, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true);
-  drawScalePoint(200, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true);
+  drawScalePoint(0, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, false, true,false);
+  drawScalePoint(30, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true,false);
+  drawScalePoint(60, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true,false);
+  drawScalePoint(90, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true,false);
+  drawScalePoint(120, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true,false);
+  drawScalePoint(150, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true,false);
+  drawScalePoint(170, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true,false);
+  drawScalePoint(200, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true,false);
 
   //draw CO2 axis (bottom right axis)
     tft.drawFastVLine(graphXPos + graphWidth + 3, graphBottomYPos, graphHeight, ST77XX_YELLOW);
-   drawScalePoint(400, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false);
-  drawScalePoint(600, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false);
-    drawScalePoint(800, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false);
-  drawScalePoint(1000, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false);
-  drawScalePoint(1200, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false);
-  drawScalePoint(1400, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false);
-  drawScalePoint(1600, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false);
-  drawScalePoint(1800, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false);
-    drawScalePoint(2000, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false);
+   drawScalePoint(400, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false,false);
+  drawScalePoint(600, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false,false);
+    drawScalePoint(800, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false,false);
+  drawScalePoint(1000, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false,false);
+  drawScalePoint(1200, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false,false);
+  drawScalePoint(1400, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false,false);
+  drawScalePoint(1600, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false,false);
+  drawScalePoint(1800, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false,false);
+    drawScalePoint(2000, minCO2, maxCO2, graphHeight + graphBottomYPos, graphBottomYPos, ST77XX_YELLOW, true, false,false);
 
 
   //draw time axis
@@ -814,8 +824,13 @@ totalCO2Readings = 0;
 
 
 //draw the y-axis
-void drawScalePoint(int scalePoint, int yMin, int yMax, int yStart, int yEnd, unsigned int color, bool drawLabel, bool onLeft) {
+void drawScalePoint(int scalePoint, int yMin, int yMax, int yStart, int yEnd, unsigned int color, bool drawLabel, bool onLeft, bool isLogGraph) {
+  if(isLogGraph){
+  y = mapLog(scalePoint, yMin, yMax, yStart, yEnd);
+  }else{
   y = map(scalePoint, yMin, yMax, yStart, yEnd);
+  }
+
     if (onLeft) {
       tft.drawFastHLine(22, y, 6, color);
     } else {
@@ -863,20 +878,27 @@ void drawTimeScalePoint(int timePoint, int xMin, int xMax, int xStart, int xEnd,
   }
 }
 
-//TODO: create mapLog functions
-//need to test
-float mapLog(float value, float inputMin, float inputMax,float outputMin, float outputMax){
-  value = log(value);
-  inputMin = log(inputMin);
-  inputMax = log(inputMax);
+//remaps a number from a linear scale to a logarithic scale 
+float mapLog(float value, float yMin, float yMax,float yStart, float yEnd){
+// showing work
+// a + b * log10(yMin) = yStart
+// a + b * log10(yMax) = yEnd
+// (a + b * log10(yMax)) - (a + b * log10(yMin)) = yEnd - yStart
+// b * (log10(yMax) - log10(yMin)) = yEnd - yStart
 
-  float fromRange = inputMax - inputMin;
-  float toRange = outputMax -outputMin ;
-  float scaledValue = (value - inputMin)/ fromRange;
+  int a;
+  int b;
 
-  scaledValue = exp(scaledValue * toRange + outputMin);
+if (value == 0){
+//Log10(0) is undefined, therefore we need to set to 1
+  value = 1;
+}
 
-  return scaledValue;
+b = (yEnd - yStart) / (log10(yMax) - log10(yMin));
+a = yStart - b * log10(yMin);
+
+float scaledValue = a + b * log10(value);
+return scaledValue;
 }
 
 //like the map function but accommodates floats
