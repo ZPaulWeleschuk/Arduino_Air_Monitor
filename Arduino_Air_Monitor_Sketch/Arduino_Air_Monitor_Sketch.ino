@@ -697,15 +697,15 @@ averageCO2Reading = (float) totalCO2Readings / (float) counter;
 //TODO:I would actually realy like a logrithmic scale for pm. not sure how difficult that will be tho. something to look into
 
 //map and draw pm 2.5 on bottom graph
-mapMiddlePM25 = mapf(averagePM25Reading, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos);
-mapMiddlePreviousPM25 = mapf(previousAveragePM25Reading, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos);
+mapMiddlePM25 = mapLog(averagePM25Reading, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos);
+mapMiddlePreviousPM25 = mapLog(previousAveragePM25Reading, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos);
 tft.drawLine(graphXPos + previousPixelPos, mapMiddlePreviousPM25, graphXPos + pixelPos, mapMiddlePM25, BLUE);
 previousAveragePM25Reading = averagePM25Reading;
 totalPM25Readings = 0;
 
 //map and draw pm 10 on Middle graph
-mapMiddlePM10 = mapf(averagePM10Reading, minPm10, maxPm10, graphHeight + graphMiddleYPos, graphMiddleYPos);
-mapMiddlePreviousPM10 = mapf(previousAveragePM10Reading, minPm10, maxPm10, graphHeight + graphMiddleYPos, graphMiddleYPos);
+mapMiddlePM10 = mapLog(averagePM10Reading, minPm10, maxPm10, graphHeight + graphMiddleYPos, graphMiddleYPos);
+mapMiddlePreviousPM10 = mapLog(previousAveragePM10Reading, minPm10, maxPm10, graphHeight + graphMiddleYPos, graphMiddleYPos);
 tft.drawLine(graphXPos + previousPixelPos, mapMiddlePreviousPM10, graphXPos + pixelPos, mapMiddlePM10, ST77XX_CYAN);
 previousAveragePM10Reading = averagePM10Reading;
 totalPM10Readings = 0;
@@ -898,13 +898,13 @@ b = (yEnd - yStart) / (log10(yMax) - log10(yMin));
 a = yStart - b * log10(yMin);
 
 float scaledValue = a + b * log10(value);
-return scaledValue;
+return round(scaledValue);
 }
 
 //like the map function but accommodates floats
 float mapf(float value, int inputMin, int inputMax, int outputMin, int outputMax) {
 
-  return (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin;
+  return round((value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin);
 }
 
 // Helper function for bme
