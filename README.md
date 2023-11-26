@@ -10,7 +10,7 @@ This project uses many communication protocols due to the sensors/libraries pref
 Sensors:
 BME680 : Indoor Air Quality Index (volatile organic compounds), barometric station pressure
 
-NTC thermistor  :  temperature
+10k @ 25c NTC thermistor  :  temperature
 
 DHT22 : humidity
 
@@ -34,21 +34,78 @@ prototyping board
 ### DHT22 Humidity Sensor
 |Pinout|Connection|
 |---------:|:--------|
-|Data|DP 8|
+|Data|DP8|
 |VCC|5V|
 |GND|GND|
 
 
 ### TFT Display
-|Pins |Voltage|
+|Pins |Connection|
 |------:|:---------|
 |VCC|5V|
 |GND|GND|
-|CS| DP 53, 3.3V TTL|
-|RESET|DP 49, 3.3V TTL|
-|DC|DP 48, 3.3V TTL|
-|MOSI| DP 51, 3.3V TTL|
-|SCK|DP 52, 3.3V TTL|
+|CS| DP53 (3.3V TTL)|
+|RESET|DP49 (3.3V TTL)|
+|DC|DP48 (3.3V TTL)|
+|MOSI| DP51 (3.3V TTL)|
+|SCK|DP52 (3.3V TTL)|
 |LED| 5V|
 
-TODO: make tables for pin outs of each sensor
+
+### Particle Matter Sensor 7003
+|Pins |Connection|
+|------:|:---------|
+|VCC|5V|
+|GND|GND|
+|set|not connected |
+|Rx|Tx3/DP14 (3.3V TTL)|
+|Tx|Rx3/DP15 (3.3V TTL)|
+|rst|not connected|
+
+
+### BME 680
+|Pins |Connection|
+|------:|:---------|
+|VCC|5V|
+|GND|GND|
+|SCL| I2C Bus -> DP21/SCL |
+|SDA| I2C Bus -> DP20/SDA|
+|SDO|not connected|
+|CS|not connected|
+
+
+### Real Time Clock DS3221
+|Pins |Connection|
+|------:|:---------|
+|32k|not connected|
+|SQW|not connected|
+|SCL| I2C Bus -> DP21/SCL |
+|SDA| I2C Bus -> DP20/SDA|
+|VCC|5V|
+|GND|GND|
+
+
+### Sensair CO2 Sensor S8
+|Pins |Connection|
+|------:|:---------|
+|VCC_out|not connected|
+|UART_RxD|DP16/Tx2|
+|UART_TxD|DP17/Rx2|
+|UART_R/T|not connected|
+|bCAL_in|not connected|
+|G+|VCC|
+|G0|GND|
+|Alarm_OC|not connected|
+|PWM 1KHz|not connected|
+
+
+### NTC Thermistor
+|Pins |Connection|
+|------:|:---------|
+|1|5V|
+|2|A1 <-> 10k resistor -> GND|
+
+
+
+
+

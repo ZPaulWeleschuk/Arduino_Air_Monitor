@@ -79,7 +79,7 @@ const int minPressure =86;//kpa
 const int  maxPressure = 91;//kpa
 
 uint8_t lastBmeReading =0;
-const byte bmeReadingInterval = 2;
+const byte bmeReadingInterval = 4;
 
 
 
@@ -553,9 +553,16 @@ void loop() {
 //BME
   if ((rtc.second() > bmeReadingInterval) && (abs(rtc.second()-lastBmeReading)> bmeReadingInterval)){
   if (BME.run()) { 
+//TODO:testing,remove
+Serial.println("reading BME");
   bme_IAQ = BME.iaq;
   bme_pressure = BME.pressure/1000;
+
+Serial.print("IAQ: ");
+Serial.println(bme_IAQ);
+
   }else {
+    Serial.println("BME did not read");
        checkIaqSensorStatus();
   }
   lastBmeReading= rtc.second();
