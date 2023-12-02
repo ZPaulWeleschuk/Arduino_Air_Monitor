@@ -70,6 +70,18 @@ void errLeds(void);
 // Create an object of the class Bsec
 Bsec BME;
 
+float totalIAQReadings;
+float averageIAQReading;
+float previousAverageIAQReading;
+int mapBottomIAQ;
+int mapBottomPreviousIAQ;
+
+float totalPressureReadings;
+float averagePressureReading;
+float previousAveragePressureReading;
+int mapMiddlePressure;
+int mapMiddlePreviousPressure;
+
 //graph variables
 // IAQ=50 corresponds to typical good air and IAQ=200 indicates typical polluted air.
 const int minIaq = 0;
@@ -97,8 +109,16 @@ float logR2, R2, T;
 float c1 = 1.009249522e-03, c2 = 2.378405444e-04, c3 = 2.019202697e-07;
 float temperature;
 
+const int minTemp = 15;
+const int maxTemp = 26;
+
 uint8_t lastTempReading =0;
 const byte tempReadingInterval = 1;
+
+//temp variables
+float totalTempReadings;
+float averageTempReading;
+float previousaverageTempReading;
 
 //---------------------------------------------------------------------------------
 //Humidity Sensor
@@ -107,6 +127,11 @@ const byte tempReadingInterval = 1;
 DHT_Unified dht(DHT22DataPin, DHTTYPE);
 float humidity;
 sensors_event_t event;
+ 
+//Humidity variables
+float totalHumidityReadings;
+float averageHumidityReading;
+float previousaverageHumidityReading;
 
 uint8_t lastHumidityReading =0;
 byte humidityReadingInterval = 2;
@@ -128,6 +153,19 @@ int maxPm25 = 1000;
 
 int minPm10 = 1;
 int maxPm10 = 1000;
+
+float totalPM25Readings;//TODO:double check is we double cap "PM" or "Pm", anyways keep it consistent
+float averagePM25Reading;
+float previousAveragePM25Reading;
+int mapMiddlePM25;
+int mapMiddlePreviousPM25;
+
+
+float totalPM10Readings;
+float averagePM10Reading;
+float previousAveragePM10Reading;
+int mapMiddlePM10;
+int mapMiddlePreviousPM10;
 
 uint8_t lastPmsReading =0;
 const byte pmsReadingInterval = 3;
@@ -159,6 +197,12 @@ float hpa;
 uint8_t lastS8Reading =0;
 const byte S8ReadingInterval = 4;
 
+float totalCO2Readings;
+float averageCO2Reading;
+float previousAverageCO2Reading;
+int mapBottomCO2;
+int mapBottomPreviousCO2;
+
 int minCO2 = 400;
 int maxCO2 = 2000;
 
@@ -182,9 +226,7 @@ const int graphTopYPos = 15;
 const int graphMiddleYPos = 107;
 const int graphBottomYPos = 214;
 
-//TODO:move these to their respective sections
-const int minTemp = 15;
-const int maxTemp = 26;
+
 
 const int minHumidity = 25;
 const int maxHumidity = 75;
@@ -208,44 +250,19 @@ int previousPixelPos;
 int counter;
 
 //TODO:perhaps move these some where else, doesnt make sense its with the RTC section
-//temp variables
-float totalTempReadings;
-float averageTempReading;
-float previousaverageTempReading;
-
-float totalIAQReadings;
-float averageIAQReading;
-float previousAverageIAQReading;
-int mapBottomIAQ;
-int mapBottomPreviousIAQ;
-
-float totalPressureReadings;
-float averagePressureReading;
-float previousAveragePressureReading;
-int mapMiddlePressure;
-int mapMiddlePreviousPressure;
-
-float totalPM25Readings;//TODO:double check is we double cap "PM" or "Pm", anyways keep it consistent
-float averagePM25Reading;
-float previousAveragePM25Reading;
-int mapMiddlePM25;
-int mapMiddlePreviousPM25;
-
-float totalPM10Readings;
-float averagePM10Reading;
-float previousAveragePM10Reading;
-int mapMiddlePM10;
-int mapMiddlePreviousPM10;
-
-float totalCO2Readings;
-float averageCO2Reading;
-float previousAverageCO2Reading;
-int mapBottomCO2;
-int mapBottomPreviousCO2;
 
 
-//TODO: do these really need to be global variables?
-//TODO:clean this up
+
+
+
+
+
+
+
+
+
+
+
 int mapTopTemp;
 int mapTopPreviousTemp;
 
@@ -253,10 +270,7 @@ int mapTopPreviousTemp;
 int mapMiddleTemp;
 int mapMiddlePreviousTemp;
 
-//Humidity variables
-float totalHumidityReadings;
-float averageHumidityReading;
-float previousaverageHumidityReading;
+
 
 
 int mapTopHumidity;
