@@ -54,6 +54,29 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
 //If you arent able to use the designated SPI pins for your board, use the following instead:
 //Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
+
+//graphcode
+// Define variables for line graph
+//TODO: figure out if there is extra pixels and utalize them
+const int displayWidth = 240;   //x
+const int displayHeight = 320;  //y
+
+const int graphWidth = 180;  //px
+const int graphHeight = 70;  //px
+
+const int graphXPos = 30;
+
+//offsets for graphs
+const int graphTopYPos = 15;
+const int graphMiddleYPos = 107;
+const int graphBottomYPos = 214;
+
+int x;
+float y;
+
+int pixelPos;
+int previousPixelPos;
+
 //---------------------------------------------------------------------------------
 //BME680
 //running on I2C protocol
@@ -120,6 +143,10 @@ float totalTempReadings;
 float averageTempReading;
 float previousaverageTempReading;
 
+int mapTopTemp;
+int mapTopPreviousTemp;
+
+
 //---------------------------------------------------------------------------------
 //Humidity Sensor
 #define DHTTYPE DHT22   //creates dht object
@@ -136,6 +163,11 @@ float previousaverageHumidityReading;
 uint8_t lastHumidityReading =0;
 byte humidityReadingInterval = 2;
 
+int mapTopHumidity;
+int mapTopPreviousHumidity;
+
+const int minHumidity = 25;
+const int maxHumidity = 75;
 //---------------------------------------------------------------------------------
 //PMS 7003
 //particulate matter sensor
@@ -206,37 +238,6 @@ int mapBottomPreviousCO2;
 int minCO2 = 400;
 int maxCO2 = 2000;
 
-//TODO: I need to determine weather to use  station pressure, barometric pressure, or just altitude.
-
-
-//---------------------------------------------------------------------------------
-//graphcode
-// Define variables for line graph
-//TODO: figure out if there is extra pixels and utalize them
-const int displayWidth = 240;   //x
-const int displayHeight = 320;  //y
-
-const int graphWidth = 180;  //px
-const int graphHeight = 70;  //px
-
-const int graphXPos = 30;
-const int graphTopYPos = 15;
-
-//offsets for middle and bottom graphs
-const int graphMiddleYPos = 107;
-const int graphBottomYPos = 214;
-
-
-
-const int minHumidity = 25;
-const int maxHumidity = 75;
-
-
-int x;
-float y;
-
-
-bool valueError = false;
 
 //---------------------------------------------------------------------------------
 //time module
@@ -245,44 +246,9 @@ uRTCLib rtc;
 int currentMinute;
 int previousMinute;
 
-int pixelPos;
-int previousPixelPos;
 int counter;
 
-//TODO:perhaps move these some where else, doesnt make sense its with the RTC section
-
-
-
-
-
-
-
-
-
-
-
-
-
-int mapTopTemp;
-int mapTopPreviousTemp;
-
-
-int mapMiddleTemp;
-int mapMiddlePreviousTemp;
-
-
-
-
-int mapTopHumidity;
-int mapTopPreviousHumidity;
-
-
-int mapMiddleHumidity;
-int mapMiddlePreviousHumidity;
-
-
 //---------------------------------------------------------------------------------
-
 
 
 void setup() {
@@ -298,9 +264,9 @@ void setup() {
 rtc.set_rtc_address(0x68);
 rtc.set_model(URTCLIB_MODEL_DS3231);
   // Following line sets the RTC with an explicit date & time
-  // for example to set January 13 2022 at 12:15 you would call://TODO:
+  // for example to set January 13 2023 at 12:15 you would call:
+  //rtc.set(0, 15, 12, 6, 15, 1, 23);
   // Comment out below line once there is a battery in module, and you set the date & time
-  //rtc.set(20, 26, 18, 2, 15, 5, 23);
   // rtc.set(second, minute, hour, dayOfWeek, dayOfMonth, month, year)
   // set day of week (1=Sunday, 7=Saturday)
 
@@ -384,7 +350,7 @@ rtc.set_model(URTCLIB_MODEL_DS3231);
 
   pixelPos = ((rtc.hour() * 60) + (rtc.minute())) / 8;
   previousPixelPos = ((rtc.hour() * 60) + (rtc.minute())) / 8;
-  //TODO: could we just initialize these vairiables at zero;
+
   counter = 0;
   totalTempReadings = 0;
   totalHumidityReadings = 0;
@@ -674,22 +640,51 @@ averageCO2Reading = (float) totalCO2Readings / (float) counter;
 
 
 
-    //safty limit on  temp value
+    //overflow/underflow limit on  temp value
     if (averageTempReading > maxTemp) {
       averageTempReading = maxTemp;
     } else if (averageTempReading < minTemp) {
       averageTempReading = minTemp;
     }
-    //safty limit on  Humidity value
+    //overflow/underflow limit on  Humidity value
     if (averageHumidityReading > maxHumidity) {
       averageHumidityReading = maxHumidity;
     } else if (averageHumidityReading < minHumidity) {
       averageHumidityReading = minHumidity;
     }
+    //overflow/underflow limit on  pressure value
+    if (averagePressureReading > maxPressure) {
+      averagePressureReading = maxPressure;
+    } else if (averagePressureReading < minPressure) {
+      averagePressureReading = minPressure;
+    }
+        //overflow/underflow limit on  pm2.5 value
+    if (averagePM25Reading > maxPm25) {
+      averagePM25Reading = maxPm25;
+    } else if (averagePM25Reading < minPm25) {
+      averagePM25Reading = minPm25;
+    }
+            //overflow/underflow limit on  pm10 value
+    if (averagePM10Reading > maxPm10) {
+      averagePM10Reading = maxPm10;
+    } else if (averagePM10Reading < minPm10) {
+      averagePM10Reading = minPm10;
+    }
+            //overflow/underflow limit on  IAQ value
+    if (averageIAQReading > maxIaq) {
+      averageIAQReading = maxIaq;
+    } else if (averageIAQReading < minIaq) {
+      averageIAQReading = minIaq;
+    }
+                //overflow/underflow limit on  CO2 value
+    if (averageCO2Reading > maxCO2) {
+      averageCO2Reading = maxCO2;
+    } else if (averageCO2Reading < minCO2) {
+      averageCO2Reading = minCO2;
+    }
 
-    //TODO:safety limit for iaq and pressure, pm, s8
+
     //note. could use the constrain() function
-
 
     //get values for graphing
     //temp for top gragh
