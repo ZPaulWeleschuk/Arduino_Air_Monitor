@@ -313,10 +313,9 @@ void setup() {
 
   //BME680
   pinMode(LED_BUILTIN, OUTPUT);  //onboard led
-  BME.begin(BME68X_I2C_ADDR_HIGH, Wire)
+  BME.begin(BME68X_I2C_ADDR_HIGH, Wire);
 
     checkIaqSensorStatus();
-  // mouse over these to see description
   //TODO:we can probably remove some of these as we are only interested in iaq and pressure
   bsec_virtual_sensor_t sensorList[13] = {
     BSEC_OUTPUT_IAQ,
@@ -410,7 +409,7 @@ void setup() {
   drawScalePoint(70, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, true, false, false);
   drawScalePoint(75, minHumidity, maxHumidity, graphHeight + graphTopYPos, graphTopYPos, ST77XX_CYAN, false, false, false);
 
-  //draw PM2.5/PM10 axis (middle left  axis)
+  //draw PM2.5/PM10 axis on log graph (middle left  axis)
   tft.drawFastVLine(graphXPos - 3, graphMiddleYPos, graphHeight, BLUE);
   drawScalePoint(1, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true, true);
   drawScalePoint(2, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos, BLUE, true, true, true);
@@ -636,6 +635,7 @@ void loop() {
 
 
 
+//TODO: change all these to call the constraint(x,a, b) function instead of this
 
     //overflow/underflow limit on  temp value
     if (averageTempReading > maxTemp) {
@@ -681,8 +681,6 @@ void loop() {
     }
 
 
-    //note. could use the constrain() function
-
     //get values for graphing
     //temp for top gragh
     mapTopTemp = mapf(averageTempReading, minTemp, maxTemp, graphHeight + graphTopYPos, graphTopYPos);
@@ -706,8 +704,6 @@ void loop() {
     tft.drawLine(graphXPos + previousPixelPos, mapMiddlePreviousPressure, graphXPos + pixelPos, mapMiddlePressure, PURPLE);
     previousAveragePressureReading = averagePressureReading;
     totalPressureReadings = 0;
-
-    //TODO:I would actually realy like a logrithmic scale for pm. not sure how difficult that will be tho. something to look into
 
     //map and draw pm 2.5 on bottom graph
     mapMiddlePM25 = mapLog(averagePM25Reading, minPm25, maxPm25, graphHeight + graphMiddleYPos, graphMiddleYPos);
