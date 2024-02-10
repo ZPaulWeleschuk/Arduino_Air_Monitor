@@ -121,7 +121,7 @@ const byte bmeReadingInterval = 4;
 //---------------------------------------------------------------------------------
 //theremistor code
 // pins for ntc thermistor
-#define ntcInput A1  // analog read pin connects to rail with thermistor and resistor
+#define ntcInput A3  // analog read pin connects to rail with thermistor and resistor
 //5v power goes to  thermistor only rail
 // GND pin connects to resistor only rail
 
