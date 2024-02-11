@@ -265,14 +265,36 @@ void setup() {
   rtc.set_model(URTCLIB_MODEL_DS3231);
   // Following line sets the RTC with an explicit date & time
   // for example to set January 13 2023 at 12:15 you would call:
-  //rtc.set(0, 15, 12, 6, 15, 1, 23);
+  //rtc.set(0, 15, 12, 6, 13, 1, 23);
   // Comment out below line once there is a battery in module, and you set the date & time
   // rtc.set(second, minute, hour, dayOfWeek, dayOfMonth, month, year)
   // set day of week (1=Sunday, 7=Saturday)
+  rtc.set(0,43,16,7,10,2,24);//comment out the rtc.set line and re-upload sketch to not overwrite the date/time each time the arduino starts up.
+
+  //real time clock
+  rtc.refresh();
+  currentMinute = rtc.minute();
+  previousMinute = rtc.minute();
+
+  //set the pixel position based on the time, note the /8 is due to the resolution of the screen.
+  //ie: 1440 minutes in a day divided by the the pixel width of the graph (180 px) => 8 minutes per pixel.
+  //TODO: fix hard coding
+  pixelPos = ((rtc.hour() * 60) + (rtc.minute())) / 8;
+  previousPixelPos = ((rtc.hour() * 60) + (rtc.minute())) / 8;
+
+  counter = 0;
+  totalTempReadings = 0;
+  totalHumidityReadings = 0;
+  totalIAQReadings = 0;
+  totalPressureReadings = 0;
+  totalPM25Readings = 0;
+  totalPM10Readings = 0;
+  totalCO2Readings = 0;
 
 
   //display
   tft.init(240, 320);
+  tft.setRotation(2);
   //make the display show the proper colors
   tft.invertDisplay(0);
   // Clear screen and draw graph axes
@@ -283,19 +305,29 @@ void setup() {
   tft.print("initializing");
 
 
-  //Sensair S8
-  //sensor need 30 to heat up to operating temp
+  //display start up sequence
   Serial.print(F("Preheat: "));
-  for (int i = 30; i > -1; i--) {  // Preheat from 0 to 30 or to 180
+  for (int i = 30; i > -1; i--) {  // Preheat from 0 to 30 
     delay(1000);
+    //display initialization count down
+    //sensors need to warm up to operating temp (mainly S8)
     Serial.println(i);
     delay(1000);
     tft.setCursor(5, 25);
     tft.print("Start up in:");
     tft.print(i);
     tft.print("  ");
+  //display set time
+  tft.setCursor(5, 60);
+  tft.print(rtc.hour());
+  tft.print(":");
+  tft.print(rtc.minute());
+  tft.print(":");
+  tft.print(rtc.second());
+  tft.println("  ");
     i--;
   }
+
   Serial.print(F("Start measurements compensated by Altitude: "));
   Serial.print(VALalti * 50);
   Serial.println(" m");
@@ -343,22 +375,6 @@ void setup() {
   //thermistor
   pinMode(ntcInput, INPUT);  // analog
 
-  //real time clock
-  rtc.refresh();
-  currentMinute = rtc.minute();
-  previousMinute = rtc.minute();
-
-  pixelPos = ((rtc.hour() * 60) + (rtc.minute())) / 8;
-  previousPixelPos = ((rtc.hour() * 60) + (rtc.minute())) / 8;
-
-  counter = 0;
-  totalTempReadings = 0;
-  totalHumidityReadings = 0;
-  totalIAQReadings = 0;
-  totalPressureReadings = 0;
-  totalPM25Readings = 0;
-  totalPM10Readings = 0;
-  totalCO2Readings = 0;
 
   //temperature
   R2 = R1 * (1023.0 / (float)(analogRead(ntcInput)) - 1.0);
@@ -551,10 +567,10 @@ void loop() {
     if (pms.readUntil(data)) {
       pm25 = data.PM_AE_UG_2_5;
       pm10 = data.PM_AE_UG_10_0;
-      // Serial.print("succesful read pms 2.5:");
-      // Serial.print(pm25);
-      // Serial.print("  pm10:");
-      // Serial.println(pm10);
+      Serial.print("succesful read pms 2.5:");
+      Serial.print(pm25);
+      Serial.print("  pm10:");
+      Serial.println(pm10);
 
     } else {
       Serial.println("error: unable to read pms");
@@ -566,8 +582,8 @@ void loop() {
   if ((rtc.second() > S8ReadingInterval) && (abs(rtc.second() - lastS8Reading) > S8ReadingInterval)) {
     //S8 can only take a reading once every 4 seconds
     CO2value = co2SenseAir();
-    // Serial.print("co2value:");
-    // Serial.println(CO2value);
+    Serial.print("co2value:");
+    Serial.println(CO2value);
     hPaCalculation();
     CO2cor = float(CO2value) + (0.016 * ((1013 - float(hpa)) / 10) * (float(CO2value) - 400));  // Increment of 1.6% for every hPa of difference at sea level
     previousAverageCO2Reading = round(CO2cor);
@@ -582,6 +598,8 @@ void loop() {
       Serial.println(F("Error reading humidity!"));
     } else {
       humidity = event.relative_humidity;
+          Serial.print("humidity:");
+    Serial.println(humidity);
     }
     lastHumidityReading = rtc.second();
   }
