@@ -13,7 +13,8 @@ using namespace std;
 #include "bsec.h"
 #include <CRCx.h>  //https://github.com/hideakitai/CRCx
 
-
+// UNCOMMENT FOR DEBUG MODE
+//#define DEBUG
 
 //---------------------------------------------------------------------------------
 //screencode
@@ -269,7 +270,7 @@ void setup() {
   // Comment out below line once there is a battery in module, and you set the date & time
   // rtc.set(second, minute, hour, dayOfWeek, dayOfMonth, month, year)
   // set day of week (1=Sunday, 7=Saturday)
-  rtc.set(0,43,16,7,10,2,24);//comment out the rtc.set line and re-upload sketch to not overwrite the date/time each time the arduino starts up.
+  //rtc.set(0,22,21,2,12,2,24);//comment out the rtc.set line and re-upload sketch to not overwrite the date/time each time the arduino starts up.
 
   //real time clock
   rtc.refresh();
@@ -307,24 +308,24 @@ void setup() {
 
   //display start up sequence
   Serial.print(F("Preheat: "));
-  for (int i = 30; i > -1; i--) {  // Preheat from 0 to 30 
+  for (int i = 30; i > -1; i--) {  // Preheat from 0 to 30
     delay(1000);
     //display initialization count down
     //sensors need to warm up to operating temp (mainly S8)
-    Serial.println(i);
     delay(1000);
     tft.setCursor(5, 25);
     tft.print("Start up in:");
     tft.print(i);
     tft.print("  ");
-  //display set time
-  tft.setCursor(5, 60);
-  tft.print(rtc.hour());
-  tft.print(":");
-  tft.print(rtc.minute());
-  tft.print(":");
-  tft.print(rtc.second());
-  tft.println("  ");
+    //display set time
+    tft.setCursor(5, 50);
+    rtc.refresh();
+    tft.print(rtc.hour());
+    tft.print(":");
+    tft.print(rtc.minute());
+    tft.print(":");
+    tft.print(rtc.second());
+    tft.println("  ");
     i--;
   }
 
@@ -347,7 +348,7 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);  //onboard led
   BME.begin(BME68X_I2C_ADDR_HIGH, Wire);
 
-    checkIaqSensorStatus();
+  checkIaqSensorStatus();
   //TODO:we can probably remove some of these as we are only interested in iaq and pressure
   bsec_virtual_sensor_t sensorList[13] = {
     BSEC_OUTPUT_IAQ,
@@ -547,13 +548,14 @@ void loop() {
   //BME
   if ((rtc.second() > bmeReadingInterval) && (abs(rtc.second() - lastBmeReading) > bmeReadingInterval)) {
     if (BME.run()) {
-      //TODO:testing,remove
-      Serial.println("reading BME");
       bme_IAQ = BME.iaq;
       bme_pressure = BME.pressure / 1000;
 
+#ifdef DEBUG
       Serial.print("IAQ: ");
       Serial.println(bme_IAQ);
+#endif
+
 
     } else {
       Serial.println("BME did not read");
@@ -567,10 +569,13 @@ void loop() {
     if (pms.readUntil(data)) {
       pm25 = data.PM_AE_UG_2_5;
       pm10 = data.PM_AE_UG_10_0;
+#ifdef DEBUG
+      Serial.println("reading BME");
       Serial.print("succesful read pms 2.5:");
       Serial.print(pm25);
       Serial.print("  pm10:");
       Serial.println(pm10);
+#endif
 
     } else {
       Serial.println("error: unable to read pms");
@@ -582,8 +587,10 @@ void loop() {
   if ((rtc.second() > S8ReadingInterval) && (abs(rtc.second() - lastS8Reading) > S8ReadingInterval)) {
     //S8 can only take a reading once every 4 seconds
     CO2value = co2SenseAir();
+#ifdef DEBUG
     Serial.print("co2value:");
     Serial.println(CO2value);
+#endif
     hPaCalculation();
     CO2cor = float(CO2value) + (0.016 * ((1013 - float(hpa)) / 10) * (float(CO2value) - 400));  // Increment of 1.6% for every hPa of difference at sea level
     previousAverageCO2Reading = round(CO2cor);
@@ -598,8 +605,10 @@ void loop() {
       Serial.println(F("Error reading humidity!"));
     } else {
       humidity = event.relative_humidity;
-          Serial.print("humidity:");
-    Serial.println(humidity);
+#ifdef DEBUG
+      Serial.print("humidity:");
+      Serial.println(humidity);
+#endif
     }
     lastHumidityReading = rtc.second();
   }
@@ -653,7 +662,7 @@ void loop() {
 
 
 
-//TODO: change all these to call the constraint(x,a, b) function instead of this
+    //TODO: change all these to call the constraint(x,a, b) function instead of this
 
     //overflow/underflow limit on  temp value
     if (averageTempReading > maxTemp) {
