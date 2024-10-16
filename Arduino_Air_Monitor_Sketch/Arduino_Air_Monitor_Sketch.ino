@@ -118,7 +118,6 @@ uint8_t lastBmeReading = 0;
 const byte bmeReadingInterval = 4;
 
 
-
 //---------------------------------------------------------------------------------
 //theremistor code
 // pins for ntc thermistor
@@ -570,7 +569,7 @@ void loop() {
       pm25 = data.PM_AE_UG_2_5;
       pm10 = data.PM_AE_UG_10_0;
 #ifdef DEBUG
-      Serial.println("reading BME");
+      Serial.println("reading PMS");
       Serial.print("succesful read pms 2.5:");
       Serial.print(pm25);
       Serial.print("  pm10:");
