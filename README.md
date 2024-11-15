@@ -74,7 +74,7 @@ prototyping board
 |CS|not connected|
 
 
-### Real Time Clock DS3221
+### Real Time Clock DS3231
 |Pins |Connection|
 |------:|:---------|
 |32k|not connected|
