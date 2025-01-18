@@ -10,7 +10,12 @@ using namespace std;
 #include <DHT_U.h>
 #include <Adafruit_Sensor.h>
 #include "PMS.h"
-#include "bsec.h"
+/*
+/ note: I couldn't get the bsec.h library to work with IAQ for some reason
+/ so I am using adafruit library instead. If you get it bsec.h library working
+/ please let me know.  
+*/
+#include "Adafruit_BME680.h"
 #include <CRCx.h>  //https://github.com/hideakitai/CRCx
 
 // UNCOMMENT FOR DEBUG MODE
@@ -88,11 +93,9 @@ float offset;        //offset has been calculated by taking the difference in th
 String output;  //TODO:not sure if we should keep this
 
 // Helper functions declarations
-void checkIaqSensorStatus(void);
 void errLeds(void);
 
-// Create an object of the class Bsec
-Bsec BME;
+Adafruit_BME680 bme;  // I2C
 
 float totalIAQReadings;
 float averageIAQReading;
@@ -107,9 +110,11 @@ int mapMiddlePressure;
 int mapMiddlePreviousPressure;
 
 //graph variables
-// IAQ=50 corresponds to typical good air and IAQ=200 indicates typical polluted air.
+// using gas resistance. This is a relative scale and resistance will increase slowly over time.
+// With low resistance indicating the VOC.
+//TODO: remane iaq to gasRes
 const int minIaq = 0;
-const int maxIaq = 200;
+const int maxIaq = 1600;
 
 const int minPressure = 86;  //kpa
 const int maxPressure = 91;  //kpa
@@ -259,7 +264,9 @@ void setup() {
 
   dht.begin();
   CO2iniSenseAir();
-
+  Wire.begin();
+  Wire.setClock(100000);
+  delay(200);
   URTCLIB_WIRE.begin();
   rtc.set_rtc_address(0x68);
   rtc.set_model(URTCLIB_MODEL_DS3231);
@@ -345,31 +352,23 @@ void setup() {
 
   //BME680
   pinMode(LED_BUILTIN, OUTPUT);  //onboard led
-  BME.begin(BME68X_I2C_ADDR_HIGH, Wire);
-
-  checkIaqSensorStatus();
-  //TODO:we can probably remove some of these as we are only interested in iaq and pressure
-  bsec_virtual_sensor_t sensorList[13] = {
-    BSEC_OUTPUT_IAQ,
-    BSEC_OUTPUT_STATIC_IAQ,
-    BSEC_OUTPUT_CO2_EQUIVALENT,
-    BSEC_OUTPUT_BREATH_VOC_EQUIVALENT,
-    BSEC_OUTPUT_RAW_TEMPERATURE,
-    BSEC_OUTPUT_RAW_PRESSURE,
-    BSEC_OUTPUT_RAW_HUMIDITY,
-    BSEC_OUTPUT_RAW_GAS,
-    BSEC_OUTPUT_STABILIZATION_STATUS,
-    BSEC_OUTPUT_RUN_IN_STATUS,
-    BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_TEMPERATURE,
-    BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_HUMIDITY,
-    BSEC_OUTPUT_GAS_PERCENTAGE
-  };
-  BME.updateSubscription(sensorList, 13, BSEC_SAMPLE_RATE_LP);
-  checkIaqSensorStatus();
-  if (BME.run()) {
-    previousAverageIAQReading = BME.iaq;
-    previousAveragePressureReading = BME.pressure / 1000;
+  if (!bme.begin()) {
+    Serial.println("Could not find a valid BME680 sensor, check wiring!");
+    while (1)
+      ;
   }
+
+  // Set up oversampling and filter initialization
+  bme.setTemperatureOversampling(BME680_OS_8X);
+  bme.setHumidityOversampling(BME680_OS_2X);
+  bme.setPressureOversampling(BME680_OS_4X);
+  bme.setIIRFilterSize(BME680_FILTER_SIZE_3);
+  bme.setGasHeater(320, 150);  // 320*C for 150 ms
+
+
+  previousAverageIAQReading = bme.gas_resistance / 1000.0;
+  previousAveragePressureReading = bme.pressure / 1000.0;
+
 
 
   //thermistor
@@ -448,16 +447,17 @@ void setup() {
   drawScalePoint(90, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false, false);
   drawScalePoint(91, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos, PURPLE, true, false, false);
 
-  //draw VOC axis (bottim left axis)
+  //draw gas resistance axis (bottim left axis)
   tft.drawFastVLine(graphXPos - 3, graphBottomYPos, graphHeight, RED);
   drawScalePoint(0, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, false, true, false);
-  drawScalePoint(30, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true, false);
-  drawScalePoint(60, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true, false);
-  drawScalePoint(90, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true, false);
-  drawScalePoint(120, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true, false);
-  drawScalePoint(150, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true, false);
-  drawScalePoint(170, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true, false);
   drawScalePoint(200, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true, false);
+  drawScalePoint(400, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true, false);
+  drawScalePoint(600, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true, false);
+  drawScalePoint(800, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true, false);
+  drawScalePoint(1000, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true, false);
+  drawScalePoint(1200, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true, false);
+  drawScalePoint(1400, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true, false);
+  drawScalePoint(1600, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos, RED, true, true, false);
 
   //draw CO2 axis (bottom right axis)
   tft.drawFastVLine(graphXPos + graphWidth + 3, graphBottomYPos, graphHeight, ST77XX_YELLOW);
@@ -529,8 +529,9 @@ void setup() {
   drawTimeScalePoint(22, 0, 24, graphXPos, graphXPos + graphWidth, graphBottomYPos, ST77XX_WHITE, false, false);
   drawTimeScalePoint(23, 0, 24, graphXPos, graphXPos + graphWidth, graphBottomYPos, ST77XX_WHITE, false, false);
   drawTimeScalePoint(24, 0, 24, graphXPos, graphXPos + graphWidth, graphBottomYPos, ST77XX_WHITE, true, false);
-
+#ifdef DEBUG
   Serial.println("Setup Complete");
+#endif
 }
 
 void loop() {
@@ -544,21 +545,23 @@ void loop() {
     lastTempReading = rtc.second();
   }
 
-  //BME
+  //BME 680
+  //hmm i wonder if I need to await the bsec.h iaq read . . .
+  //TODO: In the future switch the libraries and try it
   if ((rtc.second() > bmeReadingInterval) && (abs(rtc.second() - lastBmeReading) > bmeReadingInterval)) {
-    if (BME.run()) {
-      bme_IAQ = BME.iaq;
-      bme_pressure = BME.pressure / 1000;
-
+    if (bme.performReading()) {
 #ifdef DEBUG
-      Serial.print("IAQ: ");
-      Serial.println(bme_IAQ);
+      Serial.print("Temp: ");
+      Serial.print(bme.temperature);
+      Serial.print("  Pressure: ");
+      Serial.print(bme.pressure);
+      Serial.print("  Gas_res:");
+      Serial.println(bme.gas_resistance);
 #endif
-
-
+      bme_IAQ = bme.gas_resistance / 1000.0;
+      bme_pressure = bme.pressure / 1000.0;
     } else {
-      Serial.println("BME did not read");
-      checkIaqSensorStatus();
+      Serial.println("Failed to perform reading ");
     }
     lastBmeReading = rtc.second();
   }
@@ -693,7 +696,7 @@ void loop() {
     } else if (averagePM10Reading < minPm10) {
       averagePM10Reading = minPm10;
     }
-    //overflow/underflow limit on  IAQ value
+    //overflow/underflow limit on  gas resistance value
     if (averageIAQReading > maxIaq) {
       averageIAQReading = maxIaq;
     } else if (averageIAQReading < minIaq) {
@@ -837,10 +840,10 @@ void loop() {
   //BOTTOM
   tft.setTextSize(1);
   tft.setTextColor(RED, ST77XX_BLACK);
-  tft.setCursor(75, 190);
+  tft.setCursor(72, 190);
 
-  tft.print("IAQ:");
-  tft.print(bme_IAQ);
+  tft.print("GasRes:");
+  tft.print(round(bme_IAQ));
 
   tft.setTextColor(ST77XX_CYAN, ST77XX_BLACK);
   tft.setCursor(5, 190);
@@ -942,35 +945,7 @@ float mapf(float value, int inputMin, int inputMax, int outputMin, int outputMax
   return round((value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin);
 }
 
-// Helper function for bme
-void checkIaqSensorStatus(void) {
-  if (BME.bsecStatus != BSEC_OK) {
-    if (BME.bsecStatus < BSEC_OK) {
-      String output = "BSEC error code : " + String(BME.bsecStatus);
-      Serial.println(output);  //TODO:combine this and the print statement?
-      for (;;)                 //TODO:for loop runs forever
-        errLeds();             /* Halt in case of failure */
-    } else {
-      String output = "BSEC warning code : " + String(BME.bsecStatus);  //TODO:combine this and the print statement?
-      Serial.println(output);
-    }
-  }
 
-  if (BME.bme68xStatus != BME68X_OK) {
-    if (BME.bme68xStatus < BME68X_OK) {
-      output = "BME68X error code : " + String(BME.bme68xStatus);
-      //-2 is communication failure
-      Serial.println(output);
-      for (;;)
-        errLeds(); /* Halt in case of failure */
-    } else {
-      output = "BME68X warning code : " + String(BME.bme68xStatus);
-      Serial.println(output);
-    }
-  }
-}
-
-// Helper function for bme
 //TODO: hmmm might be a good way to determine error states . . .
 //TODO: may have to do some this in other places as it crashe more often then i would like
 void errLeds(void) {
@@ -999,7 +974,7 @@ void Failed() {
 }
 
 //Done or failed revision routine for S8
-void CheckResponse(uint8_t *a, uint8_t *b, uint8_t len_array_cmp) {
+void CheckResponse(uint8_t* a, uint8_t* b, uint8_t len_array_cmp) {
   bool check_match = false;
   for (int n = 0; n < len_array_cmp; n++) {
     if (a[n] != b[n]) {
