@@ -21,7 +21,7 @@ using namespace std;
 #include <CRCx.h>  //https://github.com/hideakitai/CRCx
 
 // UNCOMMENT FOR DEBUG MODE
-#define DEBUG
+//#define DEBUG
 
 //---------------------------------------------------------------------------------
 //screencode
@@ -484,9 +484,6 @@ void setup() {
 
   //BME680
   pinMode(LED_BUILTIN, OUTPUT);  //onboard led
-                                 //BME.begin(BME68X_I2C_ADDR_HIGH, Wire);
-                                 //BME.begin(0x77, Wire);
-                                 //BME.begin(BME68X_I2C_ADDR_LOW, Wire);
 
   if (!bme.begin()) {
     Serial.println("Could not find a valid BME680 sensor, check wiring!");
