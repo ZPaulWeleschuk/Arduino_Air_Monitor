@@ -14,12 +14,14 @@ using namespace std;
 / note: I couldn't get the bsec.h library to work with IAQ for some reason
 / so I am using adafruit library instead. If you get it bsec.h library working
 / please let me know.  
+//#include "bsec.h"
 */
+#include <Adafruit_Sensor.h>
 #include "Adafruit_BME680.h"
 #include <CRCx.h>  //https://github.com/hideakitai/CRCx
 
 // UNCOMMENT FOR DEBUG MODE
-//#define DEBUG
+#define DEBUG
 
 //---------------------------------------------------------------------------------
 //screencode
@@ -48,8 +50,10 @@ note: the MISO pin is not used in this sketch
 #define TFT_SCLK 52  //refer to chart
 #define TFT_RST 49   //can be any pin
 //also ensure that VCC and LED are connected to a 5V source, and GND is connected.
+#define TFT_MISO 50
 
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
+
 
 //color (RGB565)
 #define RED 0xFAEC
@@ -58,11 +62,11 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 //TODO: not sure if built in magenta is better or if the purple is better
 #define LIME 0x87F0
 
+
 //If you arent able to use the designated SPI pins for your board, use the following instead:
 //Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
 
-//graphcode
-// Define variables for line graph
+//Define variables for line graph
 //TODO: figure out if there is extra pixels and utalize them
 const int displayWidth = 240;   //x
 const int displayHeight = 320;  //y
@@ -93,9 +97,11 @@ float offset;        //offset has been calculated by taking the difference in th
 String output;  //TODO:not sure if we should keep this
 
 // Helper functions declarations
+void checkIaqSensorStatus(void);
 void errLeds(void);
 
-Adafruit_BME680 bme;  // I2C
+Adafruit_BME680 bme;                    // I2C
+#define SEALEVELPRESSURE_HPA (1013.25)  //set the avg pressure for you location
 
 float totalIAQReadings;
 float averageIAQReading;
@@ -109,14 +115,15 @@ float previousAveragePressureReading;
 int mapMiddlePressure;
 int mapMiddlePreviousPressure;
 
-//graph variables
+
 // using gas resistance. This is a relative scale and resistance will increase slowly over time.
 // With low resistance indicating the VOC.
 //TODO: remane iaq to gasRes
+// IAQ=50 corresponds to typical good air and IAQ=200 indicates typical polluted air.
 const int minIaq = 0;
 const int maxIaq = 1600;
 
-const int minPressure = 86;  //kpa
+const int minPressure = 86;  //kpa //You might have to adjust the pressure values for you location
 const int maxPressure = 91;  //kpa
 
 uint8_t lastBmeReading = 0;
@@ -125,10 +132,10 @@ const byte bmeReadingInterval = 4;
 
 //---------------------------------------------------------------------------------
 //theremistor code
-// pins for ntc thermistor
+//pins for ntc thermistor
 #define ntcInput A3  // analog read pin connects to rail with thermistor and resistor
 //5v power goes to  thermistor only rail
-// GND pin connects to resistor only rail
+//GND pin connects to resistor only rail
 
 // thermistor variables
 int Vo;
@@ -254,12 +261,138 @@ int previousMinute;
 int counter;
 
 //---------------------------------------------------------------------------------
+//Input
+const int timeInputSwitchPin = 2;
+const int incrementHourButtonPin = 3;
+const int decrementHourButtonPin = 4;
+const int incrementMinButtonPin = 5;
+const int decrementMinButtonPin = 6;
+
+// Time setting variables
+bool timeSettingMode = false;
+bool previousSwitchState = HIGH;
+unsigned long lastButtonPress = 0;
+const unsigned long buttonDebounceDelay = 100;  // milliseconds
+
+// Button state variables
+bool incrementHourPressed = false;
+bool decrementHourPressed = false;
+bool incrementMinPressed = false;
+bool decrementMinPressed = false;
+
+
+//---------------------------------------------------------------------------------
+void checkTimeSettingMode() {
+  bool currentSwitchState = digitalRead(timeInputSwitchPin);
+
+  // Check for switch state change (entering or exiting time setting mode)
+  if (currentSwitchState != previousSwitchState) {
+    delay(50);  // Simple debounce
+    currentSwitchState = digitalRead(timeInputSwitchPin);
+
+    if (currentSwitchState == LOW && previousSwitchState == HIGH) {
+      // Switch turned on - enter time setting mode
+      timeSettingMode = true;
+      Serial.println("Entering time setting mode");
+    } else if (currentSwitchState == HIGH && previousSwitchState == LOW) {
+      // Switch turned off - exit time setting mode and save time
+      timeSettingMode = false;
+      Serial.println("Exiting time setting mode - time saved");
+    }
+    previousSwitchState = currentSwitchState;
+  }
+}
+
+void handleTimeSettingButtons() {
+  if (!timeSettingMode) return;
+
+  unsigned long currentTime = millis();
+  if (currentTime - lastButtonPress < buttonDebounceDelay) return;
+
+  rtc.refresh();  // Get current time
+  int currentHour = rtc.hour();
+  int currentMin = rtc.minute();
+  int currentSec = rtc.second();
+  int currentDayOfWeek = rtc.dayOfWeek();
+  int currentDay = rtc.day();
+  int currentMonth = rtc.month();
+  int currentYear = rtc.year();
+
+  bool timeChanged = false;
+
+  // Check increment hour button
+  if (digitalRead(incrementHourButtonPin) == LOW && !incrementHourPressed) {
+    incrementHourPressed = true;
+    currentHour++;
+    Serial.println("Increment Hour");
+    if (currentHour > 23) currentHour = 0;
+    timeChanged = true;
+    lastButtonPress = currentTime;
+  } else if (digitalRead(incrementHourButtonPin) == HIGH) {
+    incrementHourPressed = false;
+  }
+
+  // Check decrement hour button
+  if (digitalRead(decrementHourButtonPin) == LOW && !decrementHourPressed) {
+    decrementHourPressed = true;
+    currentHour--;
+    Serial.println("decrement Hour");
+    if (currentHour < 0) currentHour = 23;
+    timeChanged = true;
+    lastButtonPress = currentTime;
+  } else if (digitalRead(decrementHourButtonPin) == HIGH) {
+    decrementHourPressed = false;
+  }
+
+  // Check increment minute button
+  if (digitalRead(incrementMinButtonPin) == LOW && !incrementMinPressed) {
+    incrementMinPressed = true;
+    currentMin++;
+    Serial.println("Increment minute");
+    if (currentMin > 59) currentMin = 0;
+    timeChanged = true;
+    lastButtonPress = currentTime;
+  } else if (digitalRead(incrementMinButtonPin) == HIGH) {
+    incrementMinPressed = false;
+  }
+
+  // Check decrement minute button
+  if (digitalRead(decrementMinButtonPin) == LOW && !decrementMinPressed) {
+    decrementMinPressed = true;
+    currentMin--;
+    Serial.println("decrement minute");
+    if (currentMin < 0) currentMin = 59;
+    timeChanged = true;
+    lastButtonPress = currentTime;
+  } else if (digitalRead(decrementMinButtonPin) == HIGH) {
+    decrementMinPressed = false;
+  }
+
+  // Update RTC if time was changed
+  if (timeChanged) {
+    rtc.set(currentSec, currentMin, currentHour, currentDayOfWeek, currentDay, currentMonth, currentYear);
+    Serial.print("Time updated to: ");
+    Serial.print(currentHour);
+    Serial.print(":");
+    Serial.println(currentMin);
+  }
+}
 
 
 void setup() {
+  // Setup input pins for time setting
+  pinMode(timeInputSwitchPin, INPUT_PULLUP);
+  pinMode(incrementHourButtonPin, INPUT_PULLUP);
+  pinMode(decrementHourButtonPin, INPUT_PULLUP);
+  pinMode(incrementMinButtonPin, INPUT_PULLUP);
+  pinMode(decrementMinButtonPin, INPUT_PULLUP);
+
+
   Serial.begin(115200);  //for serial monitor
   Serial2.begin(9600);   // for CO2 sensor
-  //delay(1000);  // wait for console opening
+  while (!Serial)
+    delay(1000);  // wait for console opening
+  ;
   Serial.println("Setup Begin");
 
   dht.begin();
@@ -302,6 +435,8 @@ void setup() {
   //display
   tft.init(240, 320);
   tft.setRotation(2);
+
+
   //make the display show the proper colors
   tft.invertDisplay(0);
   // Clear screen and draw graph axes
@@ -318,7 +453,6 @@ void setup() {
     delay(1000);
     //display initialization count down
     //sensors need to warm up to operating temp (mainly S8)
-    delay(1000);
     tft.setCursor(5, 25);
     tft.print("Start up in:");
     tft.print(i);
@@ -338,7 +472,7 @@ void setup() {
   Serial.print(F("Start measurements compensated by Altitude: "));
   Serial.print(VALalti * 50);
   Serial.println(" m");
-  delay(5000);
+  delay(1000);
 
   CO2 = 0;
   CO2value = co2SenseAir();
@@ -348,10 +482,12 @@ void setup() {
   lastS8Reading = rtc.second();
 
 
-
-
   //BME680
   pinMode(LED_BUILTIN, OUTPUT);  //onboard led
+                                 //BME.begin(BME68X_I2C_ADDR_HIGH, Wire);
+                                 //BME.begin(0x77, Wire);
+                                 //BME.begin(BME68X_I2C_ADDR_LOW, Wire);
+
   if (!bme.begin()) {
     Serial.println("Could not find a valid BME680 sensor, check wiring!");
     while (1)
@@ -364,11 +500,8 @@ void setup() {
   bme.setPressureOversampling(BME680_OS_4X);
   bme.setIIRFilterSize(BME680_FILTER_SIZE_3);
   bme.setGasHeater(320, 150);  // 320*C for 150 ms
-
-
   previousAverageIAQReading = bme.gas_resistance / 1000.0;
   previousAveragePressureReading = bme.pressure / 1000.0;
-
 
 
   //thermistor
@@ -399,6 +532,7 @@ void setup() {
   } else {
     Serial.println("ERROR: pms not reading in setup");
   }
+
 
 
   //-----------------------
@@ -529,13 +663,18 @@ void setup() {
   drawTimeScalePoint(22, 0, 24, graphXPos, graphXPos + graphWidth, graphBottomYPos, ST77XX_WHITE, false, false);
   drawTimeScalePoint(23, 0, 24, graphXPos, graphXPos + graphWidth, graphBottomYPos, ST77XX_WHITE, false, false);
   drawTimeScalePoint(24, 0, 24, graphXPos, graphXPos + graphWidth, graphBottomYPos, ST77XX_WHITE, true, false);
+
 #ifdef DEBUG
   Serial.println("Setup Complete");
 #endif
 }
 
 void loop() {
-  //Temp
+  // Handle time setting mode
+  checkTimeSettingMode();
+  handleTimeSettingButtons();
+
+   //Temp
   if ((rtc.second() > tempReadingInterval) && (abs(rtc.second() - lastTempReading) > tempReadingInterval)) {
     R2 = R1 * (1023.0 / (float)(analogRead(ntcInput)) - 1.0);
     logR2 = log(R2);
@@ -546,8 +685,6 @@ void loop() {
   }
 
   //BME 680
-  //hmm i wonder if I need to await the bsec.h iaq read . . .
-  //TODO: In the future switch the libraries and try it
   if ((rtc.second() > bmeReadingInterval) && (abs(rtc.second() - lastBmeReading) > bmeReadingInterval)) {
     if (bme.performReading()) {
 #ifdef DEBUG
@@ -616,10 +753,10 @@ void loop() {
   }
 
 
-
   rtc.refresh();
   pixelPos = ((rtc.hour() * 60) + (rtc.minute())) / 8;
   currentMinute = rtc.minute();
+
 
   //moving time bar that pans left to right with time and erases the old data
   if (pixelPos != previousPixelPos) {
@@ -663,9 +800,7 @@ void loop() {
     averageCO2Reading = (float)totalCO2Readings / (float)counter;
 
 
-
     //TODO: change all these to call the constraint(x,a, b) function instead of this
-
     //overflow/underflow limit on  temp value
     if (averageTempReading > maxTemp) {
       averageTempReading = maxTemp;
@@ -696,7 +831,7 @@ void loop() {
     } else if (averagePM10Reading < minPm10) {
       averagePM10Reading = minPm10;
     }
-    //overflow/underflow limit on  gas resistance value
+    //overflow/underflow limit on Gas Resistance value
     if (averageIAQReading > maxIaq) {
       averageIAQReading = maxIaq;
     } else if (averageIAQReading < minIaq) {
@@ -726,7 +861,6 @@ void loop() {
     previousaverageHumidityReading = averageHumidityReading;
     totalHumidityReadings = 0;
 
-
     //map and draw pressure on middle graph
     mapMiddlePressure = mapf(averagePressureReading, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos);
     mapMiddlePreviousPressure = mapf(previousAveragePressureReading, minPressure, maxPressure, graphHeight + graphMiddleYPos, graphMiddleYPos);
@@ -748,7 +882,7 @@ void loop() {
     previousAveragePM10Reading = averagePM10Reading;
     totalPM10Readings = 0;
 
-    //map and draw IAQ on bottom graph
+    //map and draw gas res on bottom graph
     mapBottomIAQ = mapf(averageIAQReading, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos);
     mapBottomPreviousIAQ = mapf(previousAverageIAQReading, minIaq, maxIaq, graphHeight + graphBottomYPos, graphBottomYPos);
     tft.drawLine(graphXPos + previousPixelPos, mapBottomPreviousIAQ, graphXPos + pixelPos, mapBottomIAQ, RED);
@@ -761,9 +895,6 @@ void loop() {
     tft.drawLine(graphXPos + previousPixelPos, mapBottomPreviousCO2, graphXPos + pixelPos, mapBottomCO2, ST77XX_YELLOW);
     previousAverageCO2Reading = averageCO2Reading;
     totalCO2Readings = 0;
-
-
-
 
 
     previousPixelPos = pixelPos;
@@ -784,7 +915,6 @@ void loop() {
   }
 
 
-
   //---------------------------------
   //live read out of sensors
   //TOP
@@ -796,6 +926,17 @@ void loop() {
   tft.print(temperature);
   tft.print("c");
 
+  // In your time display section, replace the existing time display with:
+  if (timeSettingMode) {
+    // Blink the time display in setting mode
+    if ((millis() / 500) % 2) {
+      tft.setTextColor(ST77XX_WHITE, ST77XX_BLACK);
+    } else {
+      tft.setTextColor(RED, ST77XX_BLACK);  // Blink red to indicate setting mode
+    }
+  } else {
+    tft.setTextColor(ST77XX_WHITE, ST77XX_BLACK);
+  }
   tft.setTextColor(ST77XX_WHITE, ST77XX_BLACK);
   tft.setCursor(85, 0);
   tft.print(rtc.hour());
@@ -811,7 +952,6 @@ void loop() {
   tft.print(humidity);
   tft.print("%");
 
-
   //MIDDLE
   tft.setTextSize(1);
   tft.setTextColor(BLUE, ST77XX_BLACK);
@@ -820,7 +960,6 @@ void loop() {
   tft.print("PM2.5:");
   tft.print(pm25);
   tft.println("    ");
-
 
   tft.setTextColor(ST77XX_WHITE, ST77XX_BLACK);
   tft.setCursor(85, 180);
@@ -840,21 +979,21 @@ void loop() {
   //BOTTOM
   tft.setTextSize(1);
   tft.setTextColor(RED, ST77XX_BLACK);
-  tft.setCursor(72, 190);
+  tft.setCursor(77, 190);
 
   tft.print("GasRes:");
   tft.print(round(bme_IAQ));
 
   tft.setTextColor(ST77XX_CYAN, ST77XX_BLACK);
   tft.setCursor(5, 190);
-
+  
   tft.print("PM10:");
   tft.print(pm10);
   tft.println("    ");
 
 
   tft.setTextColor(ST77XX_YELLOW, ST77XX_BLACK);
-  tft.setCursor(145, 190);
+  tft.setCursor(158, 190);
   tft.print("CO2:");
   tft.print(CO2cor);
 }
@@ -946,6 +1085,7 @@ float mapf(float value, int inputMin, int inputMax, int outputMin, int outputMax
 }
 
 
+// Helper function for bme
 //TODO: hmmm might be a good way to determine error states . . .
 //TODO: may have to do some this in other places as it crashe more often then i would like
 void errLeds(void) {
@@ -957,13 +1097,13 @@ void errLeds(void) {
   delay(1000);
 }
 
-
 //Routine Bad connection for S8
 void BadConn() {
   Serial.println("Air sensor not detected. Please check wiring... Try# " + String(ConnRetry));
   delay(2500);
   ConnRetry++;
 }
+
 
 void Done() {
   Serial.println(F("done"));
@@ -974,7 +1114,7 @@ void Failed() {
 }
 
 //Done or failed revision routine for S8
-void CheckResponse(uint8_t* a, uint8_t* b, uint8_t len_array_cmp) {
+void CheckResponse(uint8_t *a, uint8_t *b, uint8_t len_array_cmp) {
   bool check_match = false;
   for (int n = 0; n < len_array_cmp; n++) {
     if (a[n] != b[n]) {
@@ -990,7 +1130,6 @@ void CheckResponse(uint8_t* a, uint8_t* b, uint8_t len_array_cmp) {
     Failed();
   }
 }
-
 
 // Calculate of Atmospheric pressure for S8
 //return barometric pressure in hectopascal
