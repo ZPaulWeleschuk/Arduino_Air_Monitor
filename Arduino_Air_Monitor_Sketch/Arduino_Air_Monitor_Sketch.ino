@@ -978,7 +978,7 @@ void loop() {
 
   tft.setTextColor(ST77XX_CYAN, ST77XX_BLACK);
   tft.setCursor(5, 190);
-
+  
   tft.print("PM10:");
   tft.print(pm10);
   tft.println("    ");
