@@ -262,11 +262,11 @@ int counter;
 
 //---------------------------------------------------------------------------------
 //Input
-const int timeInputSwitchPin = 2;
-const int incrementHourButtonPin = 3;
-const int decrementHourButtonPin = 4;
-const int incrementMinButtonPin = 5;
-const int decrementMinButtonPin = 6;
+const int timeInputSwitchPin = 36;
+const int incrementHourButtonPin = 34;
+const int decrementHourButtonPin = 32;
+const int incrementMinButtonPin = 35;
+const int decrementMinButtonPin = 33;
 
 // Time setting variables
 bool timeSettingMode = false;
@@ -671,7 +671,7 @@ void loop() {
   checkTimeSettingMode();
   handleTimeSettingButtons();
 
-   //Temp
+  //Temp
   if ((rtc.second() > tempReadingInterval) && (abs(rtc.second() - lastTempReading) > tempReadingInterval)) {
     R2 = R1 * (1023.0 / (float)(analogRead(ntcInput)) - 1.0);
     logR2 = log(R2);
@@ -923,18 +923,13 @@ void loop() {
   tft.print(temperature);
   tft.print("c");
 
+
   // In your time display section, replace the existing time display with:
   if (timeSettingMode) {
-    // Blink the time display in setting mode
-    if ((millis() / 500) % 2) {
-      tft.setTextColor(ST77XX_WHITE, ST77XX_BLACK);
-    } else {
-      tft.setTextColor(RED, ST77XX_BLACK);  // Blink red to indicate setting mode
-    }
+    tft.setTextColor(RED, ST77XX_BLACK);  // red to indicate setting mode
   } else {
     tft.setTextColor(ST77XX_WHITE, ST77XX_BLACK);
   }
-  tft.setTextColor(ST77XX_WHITE, ST77XX_BLACK);
   tft.setCursor(85, 0);
   tft.print(rtc.hour());
   tft.print(":");
@@ -983,7 +978,7 @@ void loop() {
 
   tft.setTextColor(ST77XX_CYAN, ST77XX_BLACK);
   tft.setCursor(5, 190);
-  
+
   tft.print("PM10:");
   tft.print(pm10);
   tft.println("    ");
